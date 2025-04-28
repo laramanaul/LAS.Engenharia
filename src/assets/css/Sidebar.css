@@ -1,0 +1,104 @@
+.sidebar.enhanced {
+  width: 240px;
+  height: 100vh;
+  background: linear-gradient(to bottom, #1e1e2f, #2e2e3f);
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  top: 0;
+  left: 0;
+  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.3);
+  font-family: 'Segoe UI', sans-serif;
+  z-index: 10;
+}
+
+.sidebar-user {
+  padding: 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  text-align: center;
+  cursor: pointer;
+}
+
+.user-dropdown {
+  background: rgba(30, 30, 47, 0.9);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.user-dropdown ul {
+  list-style: none;
+  padding: 0.5rem;
+  margin: 0;
+}
+
+.user-dropdown li {
+  padding: 0.5rem;
+  cursor: pointer;
+}
+
+.user-dropdown li:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.sidebar-projeto {
+  padding: 1rem;
+}
+
+.sidebar-projeto select {
+  width: 100%;
+  padding: 0.5rem;
+  background: #2a2a3d;
+  border: 1px solid #555;
+  color: #fff;
+  border-radius: 6px;
+}
+
+.menu-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  flex-grow: 1;
+}
+
+.menu-list li {
+  transition: background 0.3s ease;
+}
+
+.menu-list li.active {
+  background: rgba(0, 212, 255, 0.3);
+  border-left: 4px solid #00d4ff;
+}
+
+.menu-list li:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.menu-list button {
+  width: 100%;
+  padding: 0.75rem;
+  border: none;
+  background: transparent;
+  color: #fff;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.emoji {
+  margin-right: 8px;
+  animation: float 3s ease-in-out infinite;
+}
+
+.sidebar-footer {
+  padding: 1rem;
+  text-align: center;
+  font-size: 0.8rem;
+  background: rgba(0, 0, 0, 0.1);
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
+}

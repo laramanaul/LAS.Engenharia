@@ -1,0 +1,11 @@
+.main-layout {
+  display: flex;
+}
+
+.main-content {
+  margin-left: 240px; /* mesmo valor da largura da sidebar */
+  padding: 1rem;
+  width: calc(100% - 240px);
+  background: #f4f4f4;
+  min-height: 100vh;
+}

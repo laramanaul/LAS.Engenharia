@@ -1,0 +1,118 @@
+<template>
+  <div class="sidebar enhanced">
+    <!-- Menu do Usuário -->
+    <div class="sidebar-user">
+      <div @click="toggleDropdown">👤 {{ primeiroNome }} ⬇️</div>
+      <div v-if="dropdownAberto" class="user-dropdown">
+        <ul>
+          <li @click="abrirUsuario">👤 Usuário</li>
+          <li @click="abrirDuvidas">❓ Dúvidas</li>
+          <li @click="$emit('reset-password', user.email)">🔑 Recuperar Senha</li>
+          <li @click="abrirConfiguracoes">⚙️ Configurações</li>
+          <li @click="$emit('logout')">🚪 Sair</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Seleção de Projeto -->
+    <div class="sidebar-projeto">
+      <select v-model="projetoSelecionado" @change="trocarProjeto">
+        <option disabled value="">Selecione o Projeto</option>
+        <option v-for="projeto in projetos" :key="projeto.id" :value="projeto.id">
+          {{ projeto.nome }}
+        </option>
+      </select>
+    </div>
+
+    <!-- Menu Principal -->
+    <ul class="menu-list">
+      <li v-for="item in menuItems" :key="item.route" :class="{ active: $route.path === item.route }">
+        <router-link :to="item.route">
+          <button><span class="emoji">{{ item.icon }}</span> {{ item.name }}</button>
+        </router-link>
+      </li>
+    </ul>
+
+    <div class="sidebar-footer">
+      Desenvolvido por <strong>luamso@gmail.com</strong>
+    </div>
+  </div>
+</template>
+
+<script>
+import { db } from '../firebase';
+import { collection, getDocs } from 'firebase/firestore';
+
+export default {
+  props: ['user', 'projetoAtivo'],
+  emits: ['trocar-projeto', 'logout', 'reset-password'],
+  data() {
+    return {
+      menuItems: [
+        { name: 'Dashboard', icon: '📊', route: '/dashboard' },
+        { name: 'Projetos', icon: '📁', route: '/projetos' },
+        { name: 'Etapas', icon: '📝', route: '/etapas' },
+        { name: 'Itens', icon: '📦', route: '/itens' },
+        { name: 'Funcionários', icon: '👷', route: '/funcionarios' },
+        { name: 'Fornecedores', icon: '🏷️', route: '/fornecedores' },
+        { name: 'Execução', icon: '🔧', route: '/execucao' },
+        { name: 'Diário de Obra', icon: '📖', route: '/diario-obra' },
+        { name: 'Cronograma', icon: '🗓️', route: '/cronograma' },
+        { name: 'Relatórios', icon: '📈', route: '/relatorios' },
+      ],
+      projetos: [],
+      projetoSelecionado: '',
+      dropdownAberto: false,
+    };
+  },
+  computed: {
+    primeiroNome() {
+      return this.user?.displayName?.split(' ')[0] || 'Usuário';
+    },
+  },
+  methods: {
+    async carregarProjetos() {
+      try {
+        const querySnapshot = await getDocs(collection(db, "projetos"));
+        this.projetos = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
+          .filter(p => p.criadoPor === this.user.uid || (p.allowedUsers || []).includes(this.user.uid));
+
+        console.log("Projetos carregados:", this.projetos);
+
+        if (this.projetos.length && !this.projetoSelecionado) {
+          this.projetoSelecionado = this.projetoAtivo || this.projetos[0].id;
+          this.$emit('trocar-projeto', this.projetoSelecionado);
+        }
+      } catch (error) {
+        console.error("Erro ao carregar projetos:", error);
+      }
+    },
+    trocarProjeto() {
+      this.$emit('trocar-projeto', this.projetoSelecionado);
+    },
+    toggleDropdown() {
+      this.dropdownAberto = !this.dropdownAberto;
+    },
+    abrirUsuario() {
+      alert(`Nome: ${this.user.displayName || '---'}\nEmail: ${this.user.email}`);
+    },
+    abrirDuvidas() {
+      alert("Para dúvidas, entre em contato com suporte@lasengenharia.com");
+    },
+    abrirConfiguracoes() {
+      this.$router.push('/configuracoes');
+    },
+  },
+  mounted() {
+    if (this.user && this.user.uid) {
+      this.carregarProjetos();
+    } else {
+      this.$watch('user', (novoUser) => {
+        if (novoUser && novoUser.uid) {
+          this.carregarProjetos();
+        }
+      }, { immediate: true });
+    }
+  }
+};
+</script>
