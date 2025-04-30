@@ -3,7 +3,7 @@ import vue from '@vitejs/plugin-vue';
 import path from 'path';
 
 export default defineConfig({
-  base: '/',  // <- ESSENCIAL para deploy em Firebase Hosting
+  base: './',  // <-- Corrigido para caminhos RELATIVOS
   plugins: [vue()],
   resolve: {
     alias: {
