@@ -1,20 +1,22 @@
-/* === GLOBAL CSS MODERNO E UNIFICADO === */
+
+/* === BASE GLOBAL RESET === */
 body {
   margin: 0;
   font-family: 'Segoe UI', sans-serif;
   background: #f5f7fa;
   color: #333;
-  overflow-x: hidden;
-  overflow-y: auto;
+  overflow-x: hidden;  /* Evita rolagem lateral indesejada */
+  overflow-y: auto;    /* Permite rolagem vertical normal */
 }
 
-
+/* === TÍTULOS === */
 h1, h2, h3 {
   font-weight: 600;
   color: #222;
   margin-bottom: 1rem;
 }
 
+/* === CAMPOS DE FORMULÁRIO === */
 input, select, textarea {
   font-family: 'Segoe UI', sans-serif;
   font-size: 0.95rem;
@@ -26,6 +28,7 @@ input, select, textarea {
   box-sizing: border-box;
 }
 
+/* === ESTADO DE CARREGAMENTO === */
 .loading {
   text-align: center;
   padding: 2rem;
@@ -33,7 +36,7 @@ input, select, textarea {
   color: #007bff;
 }
 
-/* === BOTÕES PADRÃO E DE AÇÃO === */
+/* === BOTÕES === */
 button {
   font-family: 'Segoe UI', sans-serif;
   font-size: 0.9rem;
@@ -48,10 +51,7 @@ button {
   background: #e0e0e0;
   color: #333;
 }
-
-.botao:hover {
-  background: #ccc;
-}
+.botao:hover { background: #ccc; }
 
 .botao-destaque, .actions button {
   padding: 10px 18px;
@@ -61,7 +61,6 @@ button {
   border-radius: 10px;
   box-shadow: 0 4px 12px rgba(0, 212, 255, 0.3);
 }
-
 .botao-destaque:hover, .actions button:hover {
   background: linear-gradient(90deg, #00b4e0, #0056b3);
 }
@@ -70,60 +69,54 @@ button {
   background: #4caf50;
   color: white;
 }
-
-.botao-editar:hover {
-  background: #388e3c;
-}
+.botao-editar:hover { background: #388e3c; }
 
 .botao-excluir {
   background: #f44336;
   color: white;
 }
-
-.botao-excluir:hover {
-  background: #d32f2f;
-}
+.botao-excluir:hover { background: #d32f2f; }
 
 .botao-selecionar {
   background: #2196f3;
   color: white;
 }
+.botao-selecionar:hover { background: #1976d2; }
 
-.botao-selecionar:hover {
-  background: #1976d2;
-}
-
-/* === TABELAS === */
-.projetos-tabela, .global-tabela {
-  width: 100%;
+/* === TABELAS DE DADOS === */
+.projetos-tabela,
+.global-tabela {
+  width: fixed;         /* Permite expansão horizontal */
+  min-width: 70%;
+  table-layout: fixed;        /* Travar largura das colunas */
   border-collapse: collapse;
-  background: #ffffff;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-  border-radius: 12px;
-  overflow: hidden;
-  table-layout: auto;
   overflow-wrap: anywhere;
 }
 
-.projetos-tabela th, .projetos-tabela td,
-.global-tabela th, .global-tabela td {
-  padding: 0.8rem 1rem;
-  text-align: left;
-  border-bottom: 1px solid #f0f0f0;
-  font-size: 0.9rem;
+.projetos-tabela th,
+.projetos-tabela td {
+  padding: 0.6rem 0.8rem;
+  font-size: 0.85rem;
+  white-space: nowrap;
+  border-right: 1px dashed rgba(0, 0, 0, 0.08); /* Divisão visual leve */
 }
 
-.projetos-tabela th, .global-tabela th {
-  background: #f9fafc;
-  color: #333;
-  font-weight: 600;
+.projetos-tabela th:last-child,
+.projetos-tabela td:last-child {
+  border-right: none;
 }
 
-.projetos-tabela tr:hover, .global-tabela tr:hover {
+.projetos-tabela tr:hover,
+.global-tabela tr:hover {
   background: #f5f7fa;
 }
 
-/* === MODAIS === */
+.projetos-tabela tr.selecionado {
+  background-color: rgba(0, 212, 255, 0.1);
+  box-shadow: inset 0 0 0 9999px rgba(0, 212, 255, 0.03);
+}
+
+/* === MODAIS (TELA DE CADASTRO) === */
 .modal-overlay {
   position: fixed;
   top: 0; left: 0; right: 0; bottom: 0;
@@ -132,37 +125,37 @@ button {
   align-items: center;
   justify-content: center;
   z-index: 1000;
+  padding: 1rem;
+  overflow: auto;
 }
 
 .modal {
   background: #fff;
-  padding: 1rem;
+  padding: 2rem;
   border-radius: 16px;
   box-shadow: 0 8px 24px rgba(0,0,0,0.2);
-  width: 100%;
-  min-height: 60vh;
-  max-width: 1000px;
-  box-sizing: border-box;
+  width: 95vw;
+  max-width: 1100px;
+  max-height: 90vh;
   overflow-x: auto;
-
+  overflow-y: auto;
+  font-size: 0.9rem;
+  box-sizing: border-box;
 }
 
 .modal h3 {
   margin-top: 0;
   font-size: 1.4rem;
   color: #333;
-  overflow-x: auto;
-
 }
 
 .modal-actions {
   display: flex;
   justify-content: flex-end;
   gap: 0.5rem;
-  overflow-x: auto;
-
 }
 
+/* === AÇÕES DO MODAL === */
 .btn-save {
   background: #00c853;
   color: white;
@@ -177,8 +170,7 @@ button {
   border-radius: 8px;
 }
 
-/* === TELAS DE CADASTRO PADRÃO (Projetos, Etapas, Itens etc.) === */
-
+/* === ESTRUTURA PADRÃO DE TELAS === */
 .projetos-view,
 .etapas-view,
 .itens-view,
@@ -192,8 +184,11 @@ button {
   align-items: center;
   gap: 1rem;
   margin-bottom: 1rem;
-	flex-wrap: wrap;
+  flex-wrap: wrap;
+}
 
+.topo-controles > div {
+  flex-wrap: wrap;
 }
 
 .campo-busca {
@@ -205,33 +200,27 @@ button {
 }
 
 .tabela-container {
+  width: 100%;
   overflow-x: auto;
-  background: #fff;
-  border-radius: 10px;
+  overflow-y: hidden;
+  box-sizing: border-box;
 }
 
-.projetos-tabela th,
-.projetos-tabela td {
-  white-space: nowrap;
-}
-
+/* === FORMULÁRIOS DE CADASTRO === */
 .formulario-projeto {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem;
+  gap: 1rem;
   margin-bottom: 1rem;
+  min-width: 1000px;
+  box-sizing: border-box;
 }
 
 .formulario-projeto input,
 .formulario-projeto select,
 .formulario-projeto textarea {
-  flex: 1 1 200px;
-  padding: 0.6rem;
-  border-radius: 6px;
-  border: 1px solid #ccc;
-  font-size: 1rem;
-  box-sizing: border-box;
-min-width: 180px;
+  font-size: 0.9rem;
+  padding: 0.4rem 0.6rem;
 }
 
 .formulario-projeto label {
@@ -240,6 +229,7 @@ min-width: 180px;
   margin-top: 1rem;
 }
 
+/* === ÁREA DE AÇÕES NAS TABELAS === */
 .acoes-wrapper {
   display: flex;
   flex-direction: row;
@@ -247,14 +237,13 @@ min-width: 180px;
   align-items: center;
   flex-wrap: wrap;
 }
-.topo-controles > div {
-  flex-wrap: wrap;
-}
 
+/* === BOTÃO ADICIONAR EM TABELAS === */
 .botao-destaque {
   white-space: nowrap;
 }
 
+/* === BOTÕES DE OPÇÕES NO GRID (Tipo de Projeto) === */
 .grid-opcoes {
   display: flex;
   gap: 0.5rem;
@@ -276,4 +265,3 @@ min-width: 180px;
   color: white;
   border-color: #007bff;
 }
-

@@ -18,22 +18,22 @@
 
   <div class="form-coluna">
     <label>Nome do Projeto</label>
-    <input v-model="novoProjeto.NomeProjeto" placeholder="Nome do Projeto" />
+    <input v-model="novoProjeto.NomeProjeto" placeholder="Nome do Projeto" required/>
   </div>
 
   <div class="form-coluna">
     <label>Cliente</label>
-    <input v-model="novoProjeto.Cliente" placeholder="Cliente" />
+    <input v-model="novoProjeto.Cliente" placeholder="Cliente" required/>
   </div>
 
   <div class="form-coluna">
     <label>Endereço</label>
-    <input v-model="novoProjeto.Endereco" placeholder="Endereço" />
+    <input v-model="novoProjeto.Endereco" placeholder="Endereço" required/>
   </div>
 
 <div class="form-coluna">
     <label>Estado</label>
-    <select v-model="novoProjeto.Estado" @change="carregarCidades">
+    <select v-model="novoProjeto.Estado" @change="carregarCidades" required>
       <option disabled value="">Selecione o Estado</option>
       <option v-for="estado in estados" :key="estado">{{ estado }}</option>
     </select>
@@ -41,7 +41,7 @@
 
   <div class="form-coluna">
     <label>Cidade</label>
-    <select v-model="novoProjeto.Cidade">
+    <select v-model="novoProjeto.Cidade" required>
       <option disabled value="">Selecione a Cidade</option>
       <option v-for="cidade in cidades" :key="cidade">{{ cidade }}</option>
     </select>
@@ -50,7 +50,7 @@
 
   <div class="form-coluna">
     <label>Status</label>
-    <select v-model="novoProjeto.Status">
+    <select v-model="novoProjeto.Status" required>
       <option disabled value="">Selecione o Status</option>
       <option>Pendente</option>
       <option>Em andamento</option>
@@ -60,17 +60,17 @@
 
   <div class="form-coluna">
     <label>Responsável Técnico</label>
-    <input v-model="novoProjeto.ResponsavelTecnico" placeholder="Responsável Técnico" />
+    <input v-model="novoProjeto.ResponsavelTecnico" placeholder="Responsável Técnico" required/>
   </div>
 
   <div class="form-coluna">
     <label>Nº da ART da Obra</label>
-    <input v-model="novoProjeto.ART" placeholder="Nº da ART da Obra" />
+    <input v-model="novoProjeto.ART" placeholder="Nº da ART da Obra" required/>
   </div>
 
   <div class="form-coluna">
     <label>Nº do Alvará da Obra</label>
-    <input v-model="novoProjeto.Alvara" placeholder="Nº do Alvará da Obra" />
+    <input v-model="novoProjeto.Alvara" placeholder="Nº do Alvará da Obra" required/>
   </div>
 
   <!-- Grid de seleção do tipo de projeto -->
@@ -90,12 +90,12 @@
 
  <div class="form-coluna">
     <label>Data de Início</label>
-    <input type="date" v-model="novoProjeto.DataInicioPrevista" />
+    <input type="date" v-model="novoProjeto.DataInicioPrevista" required/>
   </div>
 
   <div class="form-coluna">
     <label>Data de Fim</label>
-    <input type="date" v-model="novoProjeto.DataFimPrevista" />
+    <input type="date" v-model="novoProjeto.DataFimPrevista" required/>
   </div>
 
   
@@ -134,17 +134,14 @@
         <thead>
           <tr>
             <th style="text-align: left;">Ações</th>
-            <th>Nome</th>
+            <th>Projeto</th>
             <th>Cliente</th>
-            <th>Endereço</th>
-            <th>Tipo</th>
-            <th>Status</th>
-            <th>Início</th>
-            <th>Fim</th>
-            <th>Responsável</th>
+            <th>Tipo de Obra</th>
+            <th>Status da Obra</th>
+            <th>Data Início</th>
+            <th>Data Fim</th>
             <th>Estado</th>
             <th>Cidade</th>
-            <th>Arquivos</th>
             </tr>
         </thead>
         <tbody>
@@ -162,23 +159,13 @@
   </td>
   <td>{{ projeto.NomeProjeto }}</td>
   <td>{{ projeto.Cliente }}</td>
-  <td>{{ projeto.Endereco }}</td>
   <td>{{ projeto.TipoProjeto }}</td>
   <td>{{ projeto.Status }}</td>
   <td>{{ projeto.DataInicioPrevista }}</td>
   <td>{{ projeto.DataFimPrevista }}</td>
-  <td>{{ projeto.ResponsavelTecnico }}</td>
   <td>{{ projeto.Estado }}</td>
   <td>{{ projeto.Cidade }}</td>
-  <td>
-    <ul v-if="projeto.Arquivos && projeto.Arquivos.length">
-      <li v-for="(url, index) in projeto.Arquivos" :key="index">
-        <a :href="url" target="_blank">Arquivo {{ index + 1 }}</a>
-      </li>
-    </ul>
-    <span v-else>Nenhum</span>
-  </td>
-</tr>
+  </tr>
 
 
         
@@ -224,7 +211,7 @@ export default {
   Anotacoes: '',
   Arquivos: []
 },
-tiposProjeto: ['Residencial - Construção nova', 'Residencial - Reforma', 'Comercial', 'Industrial', 'Obra Pública'],
+tiposProjeto: ['Construção Residencial', 'Reforma', 'Ampliação', 'Industrial', 'Obra Pública'],
 estados: [],
 cidades: [],
     };
@@ -267,11 +254,27 @@ methods: {
     }
   },
   async salvarProjeto() {
-    const { NomeProjeto, Cliente, Endereco } = this.novoProjeto;
-    if (!NomeProjeto || !Cliente || !Endereco) {
-      alert("Preencha todos os campos obrigatórios.");
-      return;
-    }
+    const camposObrigatorios = [
+  'NomeProjeto',
+  'Cliente',
+  'TipoProjeto',
+  'DataInicioPrevista',
+  'DataFimPrevista',
+  'Status',
+  'ResponsavelTecnico',
+  'ART',
+  'Alvara',
+  'Estado',
+  'Cidade',
+  'Anotacoes'
+];
+
+const faltando = camposObrigatorios.filter(c => !this.novoProjeto[c]?.toString().trim());
+
+if (faltando.length) {
+  alert("Preencha todos os campos obrigatórios antes de continuar.");
+  return;
+}
     try {
       if (this.editandoId) {
         const projetoRef = doc(db, 'projetos', this.editandoId);

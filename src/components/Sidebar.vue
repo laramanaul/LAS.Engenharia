@@ -28,28 +28,38 @@
     </div>
 
     <!-- Menu Principal -->
-    <!-- CADASTROS -->
 <ul class="menu-list">
+<!-- DASHBOARD -->
+
+<li class="menu-separador">Dashboard</li>
+  <li :class="{ active: $route.path === '/dashboard' }">
+    <router-link to="/dashboard">
+      <button><span class="emoji">📊</span> Dashboard</button>
+    </router-link>
+  </li>
+
+    <!-- CADASTROS -->
+
   <li class="menu-separador">Cadastros</li>
   <li v-for="item in menuCadastros" :key="item.route" :class="{ active: $route.path === item.route }">
     <router-link :to="item.route">
       <button><span class="emoji">{{ item.icon }}</span> {{ item.name }}</button>
     </router-link>
   </li>
-</ul>
 
 <!-- LANÇAMENTOS -->
-<ul class="menu-list">
+
   <li class="menu-separador">Lançamentos</li>
   <li v-for="item in menuLancamentos" :key="item.route" :class="{ active: $route.path === item.route }">
     <router-link :to="item.route">
       <button><span class="emoji">{{ item.icon }}</span> {{ item.name }}</button>
     </router-link>
   </li>
-</ul>
+
+
 
 <!-- RELATÓRIOS -->
-<ul class="menu-list">
+
   <li class="menu-separador">Relatórios</li>
   <li v-for="item in menuRelatorios" :key="item.route" :class="{ active: $route.path === item.route }">
     <router-link :to="item.route">
