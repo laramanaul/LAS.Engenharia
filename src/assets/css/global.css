@@ -1,10 +1,13 @@
-/* Base Geral */
+/* === GLOBAL CSS MODERNO E UNIFICADO === */
 body {
   margin: 0;
   font-family: 'Segoe UI', sans-serif;
   background: #f5f7fa;
   color: #333;
+  overflow-x: hidden;
+  overflow-y: auto;
 }
+
 
 h1, h2, h3 {
   font-weight: 600;
@@ -30,7 +33,7 @@ input, select, textarea {
   color: #007bff;
 }
 
-/* Botões Gerais */
+/* === BOTÕES PADRÃO E DE AÇÃO === */
 button {
   font-family: 'Segoe UI', sans-serif;
   font-size: 0.9rem;
@@ -40,43 +43,17 @@ button {
   transition: all 0.3s ease;
 }
 
-/* Botões de Ação Pequenos */
-button.editar, button.excluir, button.selecionar {
-  padding: 6px 10px;
-  font-size: 0.8rem;
-  border-radius: 6px;
-  margin-right: 4px;
+.botao {
+  padding: 0.6rem 1rem;
+  background: #e0e0e0;
+  color: #333;
 }
 
-button.editar {
-  background: #4caf50;
-  color: white;
+.botao:hover {
+  background: #ccc;
 }
 
-button.editar:hover {
-  background: #388e3c;
-}
-
-button.excluir {
-  background: #f44336;
-  color: white;
-}
-
-button.excluir:hover {
-  background: #d32f2f;
-}
-
-button.selecionar {
-  background: #2196f3;
-  color: white;
-}
-
-button.selecionar:hover {
-  background: #1976d2;
-}
-
-/* Botão Principal Destaque */
-button.destaque, .actions button {
+.botao-destaque, .actions button {
   padding: 10px 18px;
   font-size: 1rem;
   background: linear-gradient(90deg, #00d4ff, #007bff);
@@ -85,11 +62,38 @@ button.destaque, .actions button {
   box-shadow: 0 4px 12px rgba(0, 212, 255, 0.3);
 }
 
-button.destaque:hover, .actions button:hover {
+.botao-destaque:hover, .actions button:hover {
   background: linear-gradient(90deg, #00b4e0, #0056b3);
 }
 
-/* Tabelas */
+.botao-editar {
+  background: #4caf50;
+  color: white;
+}
+
+.botao-editar:hover {
+  background: #388e3c;
+}
+
+.botao-excluir {
+  background: #f44336;
+  color: white;
+}
+
+.botao-excluir:hover {
+  background: #d32f2f;
+}
+
+.botao-selecionar {
+  background: #2196f3;
+  color: white;
+}
+
+.botao-selecionar:hover {
+  background: #1976d2;
+}
+
+/* === TABELAS === */
 .projetos-tabela, .global-tabela {
   width: 100%;
   border-collapse: collapse;
@@ -97,6 +101,8 @@ button.destaque:hover, .actions button:hover {
   box-shadow: 0 4px 12px rgba(0,0,0,0.05);
   border-radius: 12px;
   overflow: hidden;
+  table-layout: auto;
+  overflow-wrap: anywhere;
 }
 
 .projetos-tabela th, .projetos-tabela td,
@@ -117,7 +123,7 @@ button.destaque:hover, .actions button:hover {
   background: #f5f7fa;
 }
 
-/* Modais */
+/* === MODAIS === */
 .modal-overlay {
   position: fixed;
   top: 0; left: 0; right: 0; bottom: 0;
@@ -130,23 +136,31 @@ button.destaque:hover, .actions button:hover {
 
 .modal {
   background: #fff;
-  padding: 2rem;
+  padding: 1rem;
   border-radius: 16px;
   box-shadow: 0 8px 24px rgba(0,0,0,0.2);
   width: 100%;
-  max-width: 500px;
+  min-height: 60vh;
+  max-width: 1000px;
+  box-sizing: border-box;
+  overflow-x: auto;
+
 }
 
 .modal h3 {
   margin-top: 0;
   font-size: 1.4rem;
   color: #333;
+  overflow-x: auto;
+
 }
 
 .modal-actions {
   display: flex;
   justify-content: flex-end;
   gap: 0.5rem;
+  overflow-x: auto;
+
 }
 
 .btn-save {
@@ -162,3 +176,104 @@ button.destaque:hover, .actions button:hover {
   padding: 0.5rem 1rem;
   border-radius: 8px;
 }
+
+/* === TELAS DE CADASTRO PADRÃO (Projetos, Etapas, Itens etc.) === */
+
+.projetos-view,
+.etapas-view,
+.itens-view,
+.execucao-view {
+  padding: 1rem;
+}
+
+.topo-controles {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+	flex-wrap: wrap;
+
+}
+
+.campo-busca {
+  flex-grow: 1;
+  padding: 0.6rem;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  font-size: 1rem;
+}
+
+.tabela-container {
+  overflow-x: auto;
+  background: #fff;
+  border-radius: 10px;
+}
+
+.projetos-tabela th,
+.projetos-tabela td {
+  white-space: nowrap;
+}
+
+.formulario-projeto {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.formulario-projeto input,
+.formulario-projeto select,
+.formulario-projeto textarea {
+  flex: 1 1 200px;
+  padding: 0.6rem;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  font-size: 1rem;
+  box-sizing: border-box;
+min-width: 180px;
+}
+
+.formulario-projeto label {
+  width: 100%;
+  font-weight: bold;
+  margin-top: 1rem;
+}
+
+.acoes-wrapper {
+  display: flex;
+  flex-direction: row;
+  gap: 0.5rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.topo-controles > div {
+  flex-wrap: wrap;
+}
+
+.botao-destaque {
+  white-space: nowrap;
+}
+
+.grid-opcoes {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+
+.grid-opcoes button {
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  background: #fff;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.grid-opcoes button.selecionado {
+  background: #007bff;
+  color: white;
+  border-color: #007bff;
+}
+

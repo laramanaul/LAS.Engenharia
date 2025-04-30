@@ -1,4 +1,3 @@
-// App.vue com import de CSS modularizado
 <template>
   <div :class="classeApp">
     <div v-if="carregando" class="loading">
@@ -31,7 +30,6 @@ import { auth, provider } from './firebase';
 import LoginScreen from './components/LoginScreen.vue';
 import AppLayout from './components/AppLayout.vue';
 
-
 export default {
   name: 'App',
   components: {
@@ -44,18 +42,6 @@ export default {
       projetoAtivo: '',
       carregando: true,
     };
-  },
-  created() {
-    onAuthStateChanged(auth, (user) => {
-      this.user = user;
-      this.carregando = false;
-
-      if (user) {
-        console.log("Usuário logado:", user.uid);
-      } else {
-        console.log("Nenhum usuário logado.");
-      }
-    });
   },
   computed: {
     classeApp() {
@@ -139,22 +125,16 @@ export default {
       }
     },
   },
+  created() {
+    onAuthStateChanged(auth, (user) => {
+      this.user = user;
+      this.carregando = false;
+      if (user) {
+        console.log("Usuário logado:", user.uid);
+      } else {
+        console.log("Nenhum usuário logado.");
+      }
+    });
+  }
 };
 </script>
-
-
-// main.js atualizado sem imports globais desnecessários
-import { createApp } from 'vue';
-import App from './App.vue';
-import router from './router';
-import { auth } from './firebase';
-import './assets/css/index.css';
-
-let app;
-
-auth.onAuthStateChanged(user => {
-  if (!app) {
-    app = createApp(App);
-    app.use(router).mount('#app');
-  }
-});

@@ -10,7 +10,7 @@
     <table class="projetos-tabela">
       <thead>
         <tr>
-          <th>ID</th>
+          <th>Projeto</th>
           <th>Nome da Etapa</th>
           <th>Data Início</th>
           <th>Data Fim</th>
@@ -20,16 +20,19 @@
       </thead>
       <tbody>
         <tr v-for="etapa in etapasFiltradas" :key="etapa.id">
-          <td>{{ etapa.id }}</td>
-          <td>{{ etapa.NomeEtapa }}</td>
-          <td>{{ formatarData(etapa.DataInicio) }}</td>
-          <td>{{ formatarData(etapa.DataFim) }}</td>
-          <td>{{ etapa.Status }}</td>
-          <td>
-            <button @click="editarEtapa(etapa)">Editar</button>
-            <button @click="excluirEtapa(etapa.id)">Excluir</button>
-          </td>
-        </tr>
+  <td>{{ nomeProjeto}}</td>
+  <td>{{ etapa.NomeEtapa }}</td>
+  <td>{{ formatarData(etapa.DataInicio) }}</td>
+  <td>{{ formatarData(etapa.DataFim) }}</td>
+  <td>{{ etapa.Status }}</td>
+
+  <td>
+    <button @click="editarEtapa(etapa)">Editar</button>
+    <button @click="excluirEtapa(etapa.id)">Excluir</button>
+  </td>
+</tr>
+
+          
       </tbody>
     </table>
 
@@ -37,6 +40,17 @@
     <div v-if="formularioAberto" class="modal-overlay">
       <div class="modal">
         <h3>{{ etapaAtual.id ? 'Editar Etapa' : 'Nova Etapa' }}</h3>
+
+
+<label>Projeto:</label>
+<select v-model="etapaAtual.ProjetoID">
+  <option disabled value="">Selecione um projeto</option>
+  <option v-for="projeto in projetos" :key="projeto.id" :value="projeto.id">
+    {{ projeto.NomeProjeto }}
+  </option>
+</select>
+
+
 
         <label>Nome da Etapa:</label>
         <input v-model="etapaAtual.NomeEtapa" />
@@ -64,15 +78,18 @@
   </div>
 </template>
 
+
 <script>
 import { db } from '../firebase';
-import { collection, addDoc, updateDoc, deleteDoc, doc, getDocs, getDoc, Timestamp } from 'firebase/firestore';
+import { query, collection, addDoc, updateDoc, deleteDoc, doc, getDocs, where, getDoc, Timestamp } from 'firebase/firestore';
+import { auth } from '@/firebase';
 
 export default {
   props: ['projetoAtivo'],
   data() {
     return {
       etapas: [],
+      projetos: [],
       filtro: '',
       formularioAberto: false,
       etapaAtual: {
@@ -81,6 +98,7 @@ export default {
         DataInicio: '',
         DataFim: '',
         Status: '',
+        ProjetoID: ''
       },
       statusEtapasGlobais: [],
     };
@@ -96,12 +114,34 @@ export default {
     },
   },
   methods: {
-    formatarData(timestamp) {
+    async carregarProjetos() {
+  const user = auth.currentUser;
+
+  if (!user) {
+    console.warn('Usuário não está autenticado');
+    return;
+  }
+
+  try {
+    const q = query(
+      collection(db, 'projetos'),
+      where('allowedUsers', 'array-contains', user.uid)
+    );
+    const querySnapshot = await getDocs(q);
+    this.projetos = querySnapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }));
+  } catch (error) {
+    console.error('Erro ao carregar projetos:', error);
+  }
+    },
+     formatarData(timestamp) {
       if (!timestamp) return '';
       const data = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
       return data.toLocaleDateString();
     },
-    async carregarEtapas() {
+async carregarEtapas() {
       if (!this.projetoAtivo) {
         console.warn("Nenhum projeto ativo.");
         return;
@@ -130,20 +170,21 @@ export default {
         DataInicio: '',
         DataFim: '',
         Status: '',
+        ProjetoID: this.projetoAtivo || '',
       };
     },
     fecharFormulario() {
       this.formularioAberto = false;
     },
     async salvarEtapa() {
-      if (!this.projetoAtivo) {
+      if (!this.etapaAtual.ProjetoID) {
         alert("Selecione um projeto antes de salvar uma etapa.");
         return;
       }
 
       const etapaParaSalvar = {
         NomeEtapa: this.etapaAtual.NomeEtapa,
-        ProjetoID: this.projetoAtivo,
+        ProjetoID: this.etapaAtual.ProjetoID,
         Status: this.etapaAtual.Status,
         DataInicio: this.etapaAtual.DataInicio ? Timestamp.fromDate(new Date(this.etapaAtual.DataInicio)) : null,
         DataFim: this.etapaAtual.DataFim ? Timestamp.fromDate(new Date(this.etapaAtual.DataFim)) : null,
@@ -169,13 +210,14 @@ export default {
         DataInicio: etapa.DataInicio ? etapa.DataInicio.toDate().toISOString().split('T')[0] : '',
         DataFim: etapa.DataFim ? etapa.DataFim.toDate().toISOString().split('T')[0] : '',
         Status: etapa.Status,
+        ProjetoID: etapa.ProjetoID || this.projetoAtivo || ''
       };
       this.formularioAberto = true;
     },
     async excluirEtapa(id) {
       await deleteDoc(doc(db, "etapas", id));
       this.carregarEtapas();
-    },
+    }
   },
   watch: {
     projetoAtivo(novoProjetoAtivo) {
@@ -186,7 +228,7 @@ export default {
   mounted() {
     this.carregarEtapas();
     this.carregarConfiguracoesGlobais();
+    this.carregarProjetos();
   },
 };
 </script>
-

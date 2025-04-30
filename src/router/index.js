@@ -10,7 +10,7 @@ import ItensView from '../views/ItensView.vue';
 import ExecucaoView from '../views/ExecucaoView.vue';
 import DiarioObraView from '../views/DiarioObraView.vue';
 import CronogramaView from '../views/CronogramaView.vue';
-import CronogramaCalendario from '@/components/CronogramaCalendario.vue';
+import CronogramaCalendario from '../views/CronogramaView.vue';
 import RelatoriosView from '../views/RelatoriosView.vue';
 import ConfiguracoesView from '../views/ConfiguracoesView.vue';
 
