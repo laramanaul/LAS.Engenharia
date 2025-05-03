@@ -1,235 +1,437 @@
 <template>
-  <div class="execucao-container">
-    <div class="header">
-      <div class="actions">
-        <input type="text" v-model="filtro" placeholder="Buscar por item ou notas..." />
-        <button @click="abrirFormulario">+ Nova Execução</button>
+  <div class="execucao-view projetos-view">
+    <h2>Execuções de Etapas</h2>
+
+    <div class="topo-controles">
+      <button class="botao-destaque" @click="abrirFormulario">➕ Nova Execução</button>
+      <input type="text" v-model="filtroBusca" placeholder="Buscar execuções..." class="campo-busca" />
+    </div>
+
+    <!-- Modal -->
+    <div v-if="formularioAberto" class="modal-overlay">
+      <div class="modal">
+        <h3>{{ editandoId ? 'Editar Execução' : 'Nova Execução' }}</h3>
+
+        <div class="formulario-projeto">
+          <div class="form-coluna" style="flex: 1 1 45%">
+            <label>Data de Execução</label>
+            <input type="date" v-model="execucaoAtual.DataExecucao" />
+          </div>
+
+          <div class="form-coluna" style="flex: 1 1 45%">
+            <label>Projeto</label>
+            <select v-model="execucaoAtual.ProjetoID">
+              <option disabled value="">Selecione o projeto</option>
+              <option v-for="p in projetosDisponiveis" :key="p.id" :value="p.id">{{ p.NomeProjeto }}</option>
+            </select>
+          </div>
+
+          <div class="form-coluna" style="flex: 1 1 45%">
+            <label>Etapa</label>
+            <select v-model="execucaoAtual.EtapaID">
+              <option disabled value="">Selecione a etapa</option>
+              <option v-for="e in etapasDisponiveis" :key="e.id" :value="e.id">{{ e.NomeEtapa }}</option>
+            </select>
+          </div>
+
+          <div class="form-coluna" style="flex: 1 1 45%">
+            <label>Fornecedor</label>
+            <select v-model="execucaoAtual.FornecedorID">
+              <option disabled value="">Selecione o fornecedor</option>
+              <option v-for="f in fornecedores" :key="f.id" :value="f.id">{{ f.Nome }}</option>
+            </select>
+          </div>
+
+          <div class="form-coluna" style="flex: 1 1 45%">
+            <label>Item</label>
+            <select v-model="execucaoAtual.ItemID" @change="atualizarInfoItem">
+              <option disabled value="">Selecione o item</option>
+              <option v-for="i in itens" :key="i.id" :value="i.id">{{ i.NomeItem }}</option>
+            </select>
+          </div>
+
+          <div class="form-coluna" style="flex: 1 1 45%">
+            <label>Unidade</label>
+            <input v-model="execucaoAtual.Unidade" readonly />
+          </div>
+
+          <div class="form-coluna" style="flex: 1 1 45%">
+            <label>Valor de Referência (R$)</label>
+            <input v-model="execucaoAtual.ValorReferencia" readonly />
+          </div>
+
+          <div class="form-coluna" style="flex: 1 1 45%">
+            <label>Valor Cotado (R$)</label>
+            <input type="number" v-model.number="execucaoAtual.ValorCotado" />
+          </div>
+
+          <div class="form-coluna" style="flex: 1 1 45%">
+            <label>Valor Pago (R$)</label>
+            <input type="number" v-model.number="execucaoAtual.ValorReal" />
+          </div>
+
+          <div class="form-coluna" style="flex: 1 1 45%">
+            <label>Forma de Pagamento</label>
+            <select v-model="execucaoAtual.FormaPagamento">
+              <option disabled value="">Selecione</option>
+              <option>Dinheiro em espécie</option>
+              <option>Pix</option>
+              <option>Cartão de Crédito</option>
+              <option>Cartão de Débito</option>
+            </select>
+          </div>
+
+          <div class="form-coluna" style="flex: 1 1 45%">
+            <label>Situação da Execução</label>
+            <select v-model="execucaoAtual.Status">
+              <option disabled value="">Selecione</option>
+              <option>Pendente</option>
+              <option>Finalizada</option>
+            </select>
+          </div>
+
+          <div class="form-coluna" style="flex: 1 1 100%">
+            <label>Anotações</label>
+            <textarea v-model="execucaoAtual.Anotacoes" rows="3"></textarea>
+          </div>
+        </div>
+
+        <div class="modal-actions">
+          <button class="botao-destaque" @click="salvarExecucao">
+            {{ editandoId ? 'Atualizar' : 'Adicionar' }} Execução
+          </button>
+          <button class="botao" @click="cancelarEdicao">Cancelar</button>
+        </div>
       </div>
     </div>
 
-    <table class="projetos-tabela">
-      <thead>
-        <tr>
-          <th>Data</th>
-          <th>Item</th>
-          <th>Fornecedor</th>
-          <th>Quantidade</th>
-          <th>Custo Unitário</th>
-          <th>Custo Total</th>
-          <th>Notas</th>
-          <th>Ações</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="execucao in execucoesFiltradas" :key="execucao.id">
-          <td>{{ formatarData(execucao.DataExecucao) }}</td>
-          <td>{{ nomeItem(execucao.ItemID) }}</td>
-          <td>{{ nomeFornecedor(execucao.FornecedorID) }}</td>
-          <td>{{ execucao.Quantidade }}</td>
-          <td>R$ {{ execucao.CustoUnitarioRegistro.toFixed(2) }}</td>
-          <td>R$ {{ execucao.CustoTotalCalculado.toFixed(2) }}</td>
-          <td>{{ resumoTexto(execucao.Notas) }}</td>
-          <td>
-            <button @click="editarExecucao(execucao)">Editar</button>
-            <button @click="excluirExecucao(execucao.id)">Excluir</button>
-          </td>
-        </tr>
-      </tbody>
-    </table>
+<div class="filtros-execucao">
+  <label>Situação:</label>
+  <div class="filtro-botoes">
+    <button
+      :class="{ ativo: filtrosStatus.includes('Pendente') }"
+      @click="alternarStatus('Pendente')"
+    >
+      Pendente
+    </button>
+    <button
+      :class="{ ativo: filtrosStatus.includes('Finalizada') }"
+      @click="alternarStatus('Finalizada')"
+    >
+      Finalizada
+    </button>
+  </div>
+</div>
 
-    <!-- Modal para adicionar/editar execução -->
-    <div v-if="formularioAberto" class="modal-overlay">
-      <div class="modal">
-        <h3>{{ execucaoAtual.id ? 'Editar Execução' : 'Nova Execução' }}</h3>
 
-        <label>Data de Execução:</label>
-        <input type="date" v-model="execucaoAtual.DataExecucao" />
 
-        <label>Item:</label>
-        <select v-model="execucaoAtual.ItemID">
-          <option value="">Selecione o Item</option>
-          <option v-for="item in itens" :key="item.id" :value="item.id">{{ item.NomeItem }}</option>
-        </select>
+    <!-- Tabela -->
+    <div class="tabela-container">
+      <table class="projetos-tabela">
+        <thead>
+          <tr>
+            <th>Ações</th>
+            <th>Data</th>
+            <th>Projeto</th>
+            <th>Etapa</th>
+            <th>Item</th>
+            <th>Fornecedor</th>
+            <th>Valor Cotado</th>
+            <th>Valor Pago</th>
+            <th>Status</th>
+            <th>Forma Pgto</th>
 
-        <label>Fornecedor:</label>
-        <select v-model="execucaoAtual.FornecedorID">
-          <option value="">Selecione o Fornecedor</option>
-          <option v-for="fornecedor in fornecedores" :key="fornecedor.id" :value="fornecedor.id">{{ fornecedor.nome }}</option>
-        </select>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="execucao in execucoesFiltradas" :key="execucao.id">
+            <td>
+              <div class="acoes-wrapper">
+                <button class="botao-editar" @click="editarExecucao(execucao)">✏️</button>
+                <button class="botao-excluir" @click="excluirExecucao(execucao.id)">🗑️</button>
+              </div>
+            </td>
+            <td>{{ formatarData(execucao.DataExecucao) }}</td>
+            <td>{{ nomeProjeto(execucao.ProjetoID) }}</td>
+            <td>{{ nomeEtapa(execucao.EtapaID) }}</td>
+            <td>{{ nomeItem(execucao.ItemID) }}</td>
+            <td>{{ nomeFornecedor(execucao.FornecedorID) }}</td>
+            <td>R$ {{ execucao.ValorCotado?.toFixed(2) || '0.00' }}</td>
+            <td>R$ {{ execucao.ValorReal?.toFixed(2) || '0.00' }}</td>
+            <td>{{ execucao.Status }}</td>
+            <td>{{ execucao.FormaPagamento }}</td>
 
-        <label>Quantidade:</label>
-        <input type="number" v-model.number="execucaoAtual.Quantidade" />
-
-        <label>Custo Unitário (R$):</label>
-        <input type="number" v-model.number="execucaoAtual.CustoUnitarioRegistro" />
-
-        <label>Notas:</label>
-        <textarea v-model="execucaoAtual.Notas" rows="3"></textarea>
-
-        <div class="modal-actions">
-          <button @click="salvarExecucao">Salvar</button>
-          <button @click="fecharFormulario">Cancelar</button>
-        </div>
-      </div>
+          </tr>
+        </tbody>
+      </table>
     </div>
   </div>
 </template>
 
+
 <script>
 import { db } from '../firebase';
-import { collection, addDoc, updateDoc, deleteDoc, doc, getDocs, Timestamp } from 'firebase/firestore';
+import {
+  collection, getDocs, addDoc, updateDoc, deleteDoc, doc, Timestamp
+} from 'firebase/firestore';
 
 export default {
-  props: ['projetoAtivo', 'user'],
+  name: 'ExecucaoView',
+  props: {
+    user: Object,
+    organizacaoId: String,
+    projetoAtivo: String
+  },
   data() {
+    const hoje = new Date().toISOString().split('T')[0];
     return {
       execucoes: [],
-      itens: [],
-      fornecedores: [],
-      filtro: '',
-      formularioAberto: false,
+      todasExecucoes: [],
+      filtrosStatus: ['Pendente', 'Finalizada'], // <-- substitui statusSelecionado
       execucaoAtual: {
-        id: '',
-        DataExecucao: '',
-        ItemID: '',
+        DataExecucao: hoje,
+        ProjetoID: this.projetoAtivo || '',
+        EtapaID: '',
         FornecedorID: '',
-        Quantidade: 0,
-        CustoUnitarioRegistro: 0,
-        CustoTotalCalculado: 0,
-        Notas: '',
-        ProjetoID: '',
-        UsuarioID: '',
+        ItemID: '',
+        Unidade: '',
+        ValorReferencia: 0,
+        ValorCotado: 0,
+        ValorReal: 0,
+        FormaPagamento: '',
+        Status: '',
+        Anotacoes: ''
       },
+      editandoId: '',
+      formularioAberto: false,
+      filtroBusca: '',
+      projetosDisponiveis: [],
+      etapasDisponiveis: [],
+      itens: [],
+      fornecedores: []
     };
   },
   computed: {
     execucoesFiltradas() {
-      const texto = this.filtro.toLowerCase();
+      const termo = this.filtroBusca.toLowerCase();
       return this.execucoes.filter(e =>
-        (this.nomeItem(e.ItemID) || '').toLowerCase().includes(texto) ||
-        (e.Notas || '').toLowerCase().includes(texto)
+        this.filtrosStatus.includes(e.Status) &&
+        (
+          this.nomeProjeto(e.ProjetoID).toLowerCase().includes(termo) ||
+          this.nomeItem(e.ItemID).toLowerCase().includes(termo) ||
+          (e.Anotacoes || '').toLowerCase().includes(termo)
+        )
       );
+    }
+  },
+  watch: {
+    organizacaoId(nova) {
+      if (nova && this.user?.uid) {
+        this.carregarExecucoes();
+        this.carregarProjetos();
+        this.carregarItens();
+        this.carregarEtapas();
+        this.carregarFornecedores();
+      }
     },
+    user: {
+      handler(novo) {
+        if (novo?.uid && this.organizacaoId) {
+          this.carregarExecucoes();
+          this.carregarProjetos();
+          this.carregarItens();
+          this.carregarEtapas();
+          this.carregarFornecedores();
+        }
+      },
+      deep: true
+    }
   },
   methods: {
+    formatarData(data) {
+      const d = data?.toDate?.() || new Date(data);
+      return d.toLocaleDateString();
+    },
+    nomeProjeto(id) {
+      const p = this.projetosDisponiveis.find(p => p.id === id);
+      return p?.NomeProjeto || '—';
+    },
+    nomeEtapa(id) {
+      const e = this.etapasDisponiveis.find(e => e.id === id);
+      return e?.NomeEtapa || '—';
+    },
+    nomeItem(id) {
+      const i = this.itens.find(i => i.id === id);
+      return i?.NomeItem || '—';
+    },
+    nomeFornecedor(id) {
+      const f = this.fornecedores.find(f => f.id === id);
+      return f?.Nome || '—';
+    },
+
     async carregarExecucoes() {
-      if (!this.projetoAtivo) return;
-      const querySnapshot = await getDocs(collection(db, "execucoes"));
-      this.execucoes = querySnapshot.docs
+      if (!this.organizacaoId || !this.user?.uid) return;
+      const snapshot = await getDocs(collection(db, 'execucoes'));
+      const todas = snapshot.docs
         .map(doc => ({ id: doc.id, ...doc.data() }))
-        .filter(e => e.ProjetoID === this.projetoAtivo);
+        .filter(e =>
+          e.organizacaoId === this.organizacaoId &&
+          (e.UsuarioID === this.user.uid || (e.allowedUsers || []).includes(this.user.uid))
+        );
+
+      this.todasExecucoes = todas;
+      this.filtrarExecucoes();
     },
+
+    filtrarExecucoes() {
+      if (!this.filtrosStatus.length) {
+        this.execucoes = [];
+      } else {
+        this.execucoes = this.todasExecucoes.filter(
+          e => this.filtrosStatus.includes(e.Status)
+        );
+      }
+    },
+
+    alternarStatus(situacao) {
+      if (this.filtrosStatus.includes(situacao)) {
+        this.filtrosStatus = this.filtrosStatus.filter(s => s !== situacao);
+      } else {
+        this.filtrosStatus.push(situacao);
+      }
+      this.filtrarExecucoes();
+    },
+
+    async carregarProjetos() {
+      const snapshot = await getDocs(collection(db, 'projetos'));
+      const todos = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      this.projetosDisponiveis = todos
+        .filter(p =>
+          p.organizacaoId === this.organizacaoId &&
+          (p.criadoPor === this.user.uid || (p.allowedUsers || []).includes(this.user.uid))
+        )
+        .sort((a, b) => a.NomeProjeto.localeCompare(b.NomeProjeto));
+    },
+
     async carregarItens() {
-      if (!this.projetoAtivo) return;
-      const querySnapshot = await getDocs(collection(db, "itens"));
-      this.itens = querySnapshot.docs
-        .map(doc => ({ id: doc.id, ...doc.data() }))
-        .filter(i => i.ProjetoID === this.projetoAtivo);
+      const snapshot = await getDocs(collection(db, 'itens'));
+      const todos = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      this.itens = todos
+        .filter(i =>
+          i.organizacaoId === this.organizacaoId &&
+          (i.criadoPor === this.user.uid || (i.allowedUsers || []).includes(this.user.uid))
+        )
+        .sort((a, b) => a.NomeItem.localeCompare(b.NomeItem));
     },
+
+    async carregarEtapas() {
+      const snapshot = await getDocs(collection(db, 'etapas'));
+      const todos = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      this.etapasDisponiveis = todos
+        .filter(e =>
+          e.organizacaoId === this.organizacaoId &&
+          (e.criadoPor === this.user.uid || (e.allowedUsers || []).includes(this.user.uid))
+        )
+        .sort((a, b) => a.NomeEtapa.localeCompare(b.NomeEtapa));
+    },
+
     async carregarFornecedores() {
-      const querySnapshot = await getDocs(collection(db, "fornecedores"));
-      this.fornecedores = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      const snapshot = await getDocs(collection(db, 'fornecedores'));
+      const todos = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      this.fornecedores = todos
+        .filter(f =>
+          f.organizacaoId === this.organizacaoId &&
+          (f.criadoPor === this.user.uid || (f.allowedUsers || []).includes(this.user.uid))
+        )
+        .sort((a, b) => a.Nome.localeCompare(b.Nome));
     },
-    nomeItem(itemId) {
-      const item = this.itens.find(i => i.id === itemId);
-      return item ? item.NomeItem : '---';
+
+    atualizarInfoItem() {
+      const item = this.itens.find(i => i.id === this.execucaoAtual.ItemID);
+      if (item) {
+        this.execucaoAtual.ValorReferencia = item.CustoUnitario || 0;
+        this.execucaoAtual.Unidade = item.Unidade || '';
+      }
     },
-    nomeFornecedor(fornecedorId) {
-      const fornecedor = this.fornecedores.find(f => f.id === fornecedorId);
-      return fornecedor ? fornecedor.nome : '---';
-    },
-    formatarData(timestamp) {
-      if (!timestamp) return '';
-      const data = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
-      return data.toLocaleDateString();
-    },
-    resumoTexto(texto) {
-      return texto && texto.length > 30 ? texto.substring(0, 30) + '...' : texto;
-    },
+
     abrirFormulario() {
-      this.formularioAberto = true;
       const hoje = new Date().toISOString().split('T')[0];
       this.execucaoAtual = {
-        id: '',
         DataExecucao: hoje,
-        ItemID: '',
+        ProjetoID: this.projetoAtivo || '',
+        EtapaID: '',
         FornecedorID: '',
-        Quantidade: 0,
-        CustoUnitarioRegistro: 0,
-        CustoTotalCalculado: 0,
-        Notas: '',
-        ProjetoID: this.projetoAtivo,
-        UsuarioID: this.user.uid,
+        ItemID: '',
+        Unidade: '',
+        ValorReferencia: 0,
+        ValorCotado: 0,
+        ValorReal: 0,
+        FormaPagamento: '',
+        Status: '',
+        Anotacoes: ''
       };
+      this.editandoId = '';
+      this.formularioAberto = true;
     },
-    fecharFormulario() {
+
+    cancelarEdicao() {
+      this.editandoId = '';
       this.formularioAberto = false;
     },
+
     async salvarExecucao() {
-      if (!this.projetoAtivo) {
-        alert("Selecione um projeto antes de salvar.");
-        return;
-      }
+      if (!this.organizacaoId || !this.user?.uid) return;
 
-      const custoTotal = this.execucaoAtual.Quantidade * this.execucaoAtual.CustoUnitarioRegistro;
-
-      const execucaoParaSalvar = {
+      const dados = {
+        ...this.execucaoAtual,
         DataExecucao: Timestamp.fromDate(new Date(this.execucaoAtual.DataExecucao)),
-        ItemID: this.execucaoAtual.ItemID,
-        FornecedorID: this.execucaoAtual.FornecedorID,
-        Quantidade: this.execucaoAtual.Quantidade,
-        CustoUnitarioRegistro: this.execucaoAtual.CustoUnitarioRegistro,
-        CustoTotalCalculado: custoTotal,
-        Notas: this.execucaoAtual.Notas,
-        ProjetoID: this.projetoAtivo,
+        organizacaoId: this.organizacaoId,
         UsuarioID: this.user.uid,
+        dataCriacao: new Date()
       };
 
       try {
-        if (this.execucaoAtual.id) {
-          await updateDoc(doc(db, "execucoes", this.execucaoAtual.id), execucaoParaSalvar);
+        if (this.editandoId) {
+          await updateDoc(doc(db, 'execucoes', this.editandoId), dados);
         } else {
-          await addDoc(collection(db, "execucoes"), execucaoParaSalvar);
+          await addDoc(collection(db, 'execucoes'), dados);
         }
-        this.fecharFormulario();
+        this.cancelarEdicao();
         this.carregarExecucoes();
-      } catch (error) {
-        console.error("Erro ao salvar execução:", error);
-        alert("Erro ao salvar execução.");
+      } catch (err) {
+        console.error('Erro ao salvar execução:', err);
       }
     },
-    editarExecucao(execucao) {
+
+    editarExecucao(exec) {
       this.execucaoAtual = {
-        id: execucao.id,
-        DataExecucao: execucao.DataExecucao ? execucao.DataExecucao.toDate().toISOString().split('T')[0] : '',
-        ItemID: execucao.ItemID,
-        FornecedorID: execucao.FornecedorID || '',
-        Quantidade: execucao.Quantidade,
-        CustoUnitarioRegistro: execucao.CustoUnitarioRegistro,
-        CustoTotalCalculado: execucao.CustoTotalCalculado,
-        Notas: execucao.Notas,
-        ProjetoID: execucao.ProjetoID,
-        UsuarioID: execucao.UsuarioID,
+        ...exec,
+        DataExecucao: exec.DataExecucao?.toDate?.().toISOString().split('T')[0] || ''
       };
+      this.editandoId = exec.id;
       this.formularioAberto = true;
     },
+
     async excluirExecucao(id) {
-      await deleteDoc(doc(db, "execucoes", id));
-      this.carregarExecucoes();
-    },
-  },
-  watch: {
-    projetoAtivo() {
-      this.carregarExecucoes();
-      this.carregarItens();
-      this.carregarFornecedores();
+      if (confirm('Deseja excluir esta execução?')) {
+        try {
+          await deleteDoc(doc(db, 'execucoes', id));
+          this.carregarExecucoes();
+        } catch (err) {
+          console.error('Erro ao excluir execução:', err);
+        }
+      }
     }
   },
+
   mounted() {
-    this.carregarExecucoes();
-    this.carregarItens();
-    this.carregarFornecedores();
-  },
+    if (this.organizacaoId && this.user?.uid) {
+      this.carregarExecucoes();
+      this.carregarProjetos();
+      this.carregarItens();
+      this.carregarEtapas();
+      this.carregarFornecedores();
+    }
+  }
 };
 </script>
-

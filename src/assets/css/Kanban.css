@@ -1,0 +1,101 @@
+/* === KANBAN === */
+.kanban-board {
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-start;
+  align-items: flex-start;
+  overflow-x: auto;
+  padding-bottom: 1rem;
+  margin-top: 1rem;
+}
+
+.kanban-coluna {
+  background: #f9f9f9;
+  border: 1px solid #ddd;
+  border-radius: 12px;
+  padding: 1rem;
+  flex: 0 0 300px;
+  max-width: 300px;
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  transition: background 0.3s ease;
+}
+
+.kanban-coluna.dragover {
+  background: #eef5ff;
+}
+
+.kanban-coluna h3 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+  color: #007bff;
+  border-bottom: 2px solid #007bff;
+  padding-bottom: 0.25rem;
+}
+
+.kanban-card {
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  padding: 0.8rem;
+  margin-bottom: 1rem;
+  cursor: grab;
+  transition: transform 0.2s ease;
+}
+
+.kanban-card:active {
+  cursor: grabbing;
+  transform: scale(1.01);
+}
+
+.kanban-topo {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.kanban-topo strong {
+  font-size: 0.95rem;
+  color: #333;
+}
+
+.kanban-topo .data {
+  font-size: 0.8rem;
+  color: #777;
+}
+
+.kanban-card p {
+  font-size: 0.85rem;
+  margin: 0.3rem 0;
+}
+
+.kanban-card select {
+  font-size: 0.85rem;
+  padding: 0.3rem;
+  margin-top: 0.2rem;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.kanban-card .acoes-wrapper {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.4rem;
+  margin-top: 0.5rem;
+}
+
+
+.kanban-coluna {
+  scroll-behavior: smooth;
+}
+
+.kanban-coluna.dragover {
+  background-color: #eef6ff;
+  border-color: #007bff;
+}
+

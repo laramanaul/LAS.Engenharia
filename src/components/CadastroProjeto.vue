@@ -53,7 +53,15 @@
 </template>
 
 <script>
+import { db } from '../firebase';
+import { collection, addDoc } from 'firebase/firestore';
+
 export default {
+  name: 'CadastroProjeto',
+  props: {
+    user: Object,
+    organizacaoId: String
+  },
   data() {
     return {
       projetoAtual: {
@@ -63,19 +71,44 @@ export default {
         Cidade: '',
         DataInicioPrevista: '',
         DataFimPrevista: '',
-        Anotacoes: '',
+        Anotacoes: ''
       },
-      estados: [], // Carregar estados
-      cidades: [], // Carregar cidades conforme estado
+      estados: [],
+      cidades: []
     };
   },
   methods: {
-    salvarProjeto() {
-      // Salvar dados do projeto
-      alert('Projeto salvo com sucesso!');
+    async salvarProjeto() {
+      const camposObrigatorios = ['NomeProjeto', 'Cliente', 'Estado', 'Cidade', 'DataInicioPrevista', 'DataFimPrevista', 'Anotacoes'];
+      const faltando = camposObrigatorios.filter(c => !this.projetoAtual[c]?.toString().trim());
+
+      if (faltando.length) {
+        alert("Preencha todos os campos obrigatórios.");
+        return;
+      }
+
+      if (!this.user?.uid || !this.organizacaoId) {
+        alert("Usuário ou organização inválidos.");
+        return;
+      }
+
+      try {
+        await addDoc(collection(db, 'projetos'), {
+          ...this.projetoAtual,
+          organizacaoId: this.organizacaoId,
+          criadoPor: this.user.uid,
+          dataCriacao: new Date()
+        });
+
+        alert('Projeto salvo com sucesso!');
+        this.cancelarCadastro();
+      } catch (err) {
+        console.error("Erro ao salvar projeto:", err);
+        alert("Erro ao salvar projeto. Veja o console.");
+      }
     },
+
     cancelarCadastro() {
-      // Limpar os campos ou redirecionar
       this.projetoAtual = {
         NomeProjeto: '',
         Cliente: '',
@@ -83,9 +116,36 @@ export default {
         Cidade: '',
         DataInicioPrevista: '',
         DataFimPrevista: '',
-        Anotacoes: '',
+        Anotacoes: ''
       };
     },
+
+    async carregarEstados() {
+      try {
+        const res = await fetch('https://servicodados.ibge.gov.br/api/v1/localidades/estados?orderBy=nome');
+        this.estados = await res.json();
+      } catch (err) {
+        console.error('Erro ao carregar estados:', err);
+      }
+    },
+
+    async carregarCidades() {
+      this.projetoAtual.Cidade = '';
+      if (!this.projetoAtual.Estado) return;
+
+      try {
+        const res = await fetch(`https://servicodados.ibge.gov.br/api/v1/localidades/estados/${this.projetoAtual.Estado}/municipios`);
+        this.cidades = await res.json();
+      } catch (err) {
+        console.error('Erro ao carregar cidades:', err);
+      }
+    }
   },
+  watch: {
+    'projetoAtual.Estado': 'carregarCidades'
+  },
+  mounted() {
+    this.carregarEstados();
+  }
 };
 </script>

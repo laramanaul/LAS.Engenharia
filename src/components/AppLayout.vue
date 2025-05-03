@@ -1,22 +1,20 @@
 <template>
-  <div :class="['main-layout', sidebarVisivel ? 'com-sidebar' : 'sem-sidebar']">
+  <div class="main-layout com-sidebar">
     <Sidebar
-      v-if="sidebarVisivel"
       :user="user"
       :projetoAtivo="projetoAtivo"
+      @trocar-projeto="atualizarProjeto"
+      @trocar-organizacao="atualizarOrganizacao"
       @logout="$emit('logout')"
       @reset-password="$emit('reset-password', $event)"
-      @trocar-projeto="$emit('trocar-projeto', $event)"
     />
 
     <div class="main-content">
-      <div class="page-content">
-        <router-view
-          :user="user"
-          :projetoAtivo="projetoAtivo"
-          @trocar-projeto="$emit('trocar-projeto', $event)"
-        />
-      </div>
+      <router-view
+        :user="user"
+        :projetoAtivo="projetoAtivo"
+        :organizacaoId="organizacaoId"
+      />
     </div>
   </div>
 </template>
@@ -25,12 +23,30 @@
 import Sidebar from './Sidebar.vue';
 
 export default {
-  props: ['user', 'projetoAtivo'],
-  components: { Sidebar },
-  computed: {
-    sidebarVisivel() {
-      return this.$route.path !== '/login';
-    }
+  name: 'AppLayout',
+  components: {
+    Sidebar
+  },
+  props: {
+    user: Object
+  },
+  data() {
+    return {
+      projetoAtivo: '',
+      organizacaoId: ''
+    };
+  },
+methods: {
+  atualizarProjeto(novoProjetoId) {
+    console.log('🔄 Projeto ativo atualizado:', novoProjetoId);
+    this.projetoAtivo = novoProjetoId;
+  },
+  atualizarOrganizacao(novaOrganizacaoId) {
+    console.log('🔄 Organização ativa atualizada:', novaOrganizacaoId);
+    this.organizacaoId = novaOrganizacaoId;
+    this.projetoAtivo = '';
   }
+}
+
 };
 </script>

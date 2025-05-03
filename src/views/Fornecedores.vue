@@ -1,160 +1,244 @@
 <template>
-  <div class="fornecedores-container">
-    <div class="header">
-      <div class="actions">
-        <input type="text" v-model="filtro" placeholder="Buscar por nome ou produto/serviço..." />
-        <button @click="abrirFormulario">+ Novo Fornecedor</button>
+  <div class="fornecedores-view projetos-view">
+    <!-- Título da página -->
+    <h2>Fornecedores</h2>
+
+    <!-- Controles superiores -->
+    <div class="topo-controles">
+      <button class="botao-destaque" @click="abrirFormulario = true">➕ Adicionar Fornecedor</button>
+      <input
+        type="text"
+        v-model="filtroBusca"
+        placeholder="Buscar fornecedores..."
+        class="campo-busca"
+      />
+    </div>
+
+    <!-- Modal de formulário -->
+    <div v-if="abrirFormulario" class="modal-overlay">
+      <div class="modal" style="max-width: 900px;">
+        <h3>{{ editandoId ? 'Editar Fornecedor' : 'Novo Fornecedor' }}</h3>
+
+        <div class="formulario-projeto" style="display: flex; flex-wrap: wrap; gap: 1rem;">
+          <div class="form-coluna" style="flex: 1 1 45%;">
+            <label>Nome</label>
+            <input v-model="novoFornecedor.Nome" placeholder="Nome do fornecedor" required />
+          </div>
+
+          <div class="form-coluna" style="flex: 1 1 45%;">
+            <label>CNPJ</label>
+            <input v-model="novoFornecedor.CNPJ" placeholder="CNPJ ou CPF" />
+          </div>
+
+          <div class="form-coluna" style="flex: 1 1 45%;">
+            <label>Endereço</label>
+            <input v-model="novoFornecedor.Endereco" placeholder="Endereço completo" />
+          </div>
+
+          <div class="form-coluna" style="flex: 1 1 45%;">
+            <label>Contato</label>
+            <input v-model="novoFornecedor.Contato" placeholder="Telefone, e-mail ou responsável" />
+          </div>
+
+          <div class="form-coluna" style="flex: 1 1 100%;">
+            <label>Produtos ou Serviços</label>
+            <textarea v-model="novoFornecedor.ProdutosServicos" rows="2" placeholder="Materiais ou serviços fornecidos"></textarea>
+          </div>
+
+          <div class="form-coluna" style="flex: 1 1 100%;">
+            <label>Anotações</label>
+            <textarea v-model="novoFornecedor.Anotacoes" rows="2" placeholder="Observações, histórico, condições, etc."></textarea>
+          </div>
+        </div>
+
+        <div class="modal-actions">
+          <button class="botao-destaque" @click="salvarFornecedor">
+            {{ editandoId ? 'Atualizar' : 'Adicionar' }} Fornecedor
+          </button>
+          <button class="botao" @click="cancelarEdicao">Cancelar</button>
+        </div>
       </div>
     </div>
 
-    <table class="projetos-tabela">
-      <thead>
-        <tr>
-          <th>Nome</th>
-          <th>CNPJ</th>
-          <th>Endereço</th>
-          <th>Serviços/Produtos</th>
-          <th>Contato</th>
-          <th>Anotações</th>
-          <th>Ações</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="fornecedor in fornecedoresFiltrados" :key="fornecedor.id">
-          <td>{{ fornecedor.nome }}</td>
-          <td>{{ fornecedor.cnpj }}</td>
-          <td>{{ fornecedor.endereco }}</td>
-          <td>{{ fornecedor.produtos }}</td>
-          <td>{{ fornecedor.contato }}</td>
-          <td>{{ resumoTexto(fornecedor.anotacoes) }}</td>
-          <td>
-            <button @click="editarFornecedor(fornecedor)">Editar</button>
-            <button @click="excluirFornecedor(fornecedor.id)">Excluir</button>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-
-    <!-- Modal para adicionar/editar fornecedor -->
-    <div v-if="formularioAberto" class="modal-overlay">
-      <div class="modal">
-        <h3>{{ fornecedorAtual.id ? 'Editar Fornecedor' : 'Novo Fornecedor' }}</h3>
-
-        <label>Nome do Fornecedor:</label>
-        <input v-model="fornecedorAtual.nome" />
-
-        <label>CNPJ:</label>
-        <input v-model="fornecedorAtual.cnpj" />
-
-        <label>Endereço:</label>
-        <input v-model="fornecedorAtual.endereco" />
-
-        <label>Serviços/Produtos:</label>
-        <input v-model="fornecedorAtual.produtos" />
-
-        <label>Contato:</label>
-        <input v-model="fornecedorAtual.contato" />
-
-        <label>Anotações:</label>
-        <textarea v-model="fornecedorAtual.anotacoes" rows="4"></textarea>
-
-        <div class="modal-actions">
-          <button @click="salvarFornecedor">Salvar</button>
-          <button @click="fecharFormulario">Cancelar</button>
-        </div>
+    <!-- Tabela de fornecedores -->
+    <div class="tabela-container">
+      <div v-if="!fornecedoresFiltrados.length" style="margin: 1rem 0; color: #a00;">
+        ⚠️ Nenhum fornecedor encontrado.
       </div>
+
+      <table v-else class="projetos-tabela">
+        <thead>
+          <tr>
+            <th>Ações</th>
+            <th>Nome</th>
+            <th>CNPJ</th>
+            <th>Endereço</th>
+            <th>Contato</th>
+            <th>Produtos/Serviços</th>
+            <th>Anotações</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr
+            v-for="fornecedor in fornecedoresFiltrados"
+            :key="fornecedor.id"
+            :class="{ selecionado: fornecedorSelecionado === fornecedor.id }"
+          >
+            <td>
+              <div class="acoes-wrapper">
+                <button class="botao-selecionar" @click="selecionarFornecedor(fornecedor.id)">✔</button>
+                <button class="botao-editar" @click="editarFornecedor(fornecedor)">✏️</button>
+                <button class="botao-excluir" @click="excluirFornecedor(fornecedor.id)">🗑️</button>
+              </div>
+            </td>
+            <td>{{ fornecedor.Nome || '—' }}</td>
+            <td>{{ fornecedor.CNPJ || '—' }}</td>
+            <td>{{ fornecedor.Endereco || '—' }}</td>
+            <td>{{ fornecedor.Contato || '—' }}</td>
+            <td>{{ fornecedor.ProdutosServicos || '—' }}</td>
+            <td>{{ fornecedor.Anotacoes || '—' }}</td>
+          </tr>
+        </tbody>
+      </table>
     </div>
   </div>
 </template>
 
+
 <script>
 import { db } from '../firebase';
-import { collection, addDoc, updateDoc, deleteDoc, doc, getDocs } from 'firebase/firestore';
+import {
+  collection, getDocs, addDoc, updateDoc, deleteDoc, doc
+} from 'firebase/firestore';
 
 export default {
+  name: 'FornecedoresView',
+  props: {
+    user: Object,
+    organizacaoId: String
+  },
   data() {
     return {
       fornecedores: [],
-      filtro: '',
-      formularioAberto: false,
-      fornecedorAtual: {
-        id: '',
-        nome: '',
-        cnpj: '',
-        endereco: '',
-        produtos: '',
-        contato: '',
-        anotacoes: '',
-      },
+      fornecedorSelecionado: '',
+      editandoId: '',
+      abrirFormulario: false,
+      filtroBusca: '',
+      novoFornecedor: {
+        Nome: '',
+        CNPJ: '',
+        Endereco: '',
+        Contato: '',
+        ProdutosServicos: '',
+        Anotacoes: ''
+      }
     };
   },
   computed: {
     fornecedoresFiltrados() {
-      const texto = this.filtro.toLowerCase();
+      const termo = this.filtroBusca?.toLowerCase().trim();
+      if (!termo) return this.fornecedores;
       return this.fornecedores.filter(f =>
-        (f.nome || '').toLowerCase().includes(texto) ||
-        (f.produtos || '').toLowerCase().includes(texto)
+        Object.values(f).some(v =>
+          typeof v === 'string' && v.toLowerCase().includes(termo)
+        )
       );
+    }
+  },
+  watch: {
+    organizacaoId(nova) {
+      if (nova && this.user?.uid) {
+        this.carregarFornecedores();
+      }
     },
+    user: {
+      handler(novo) {
+        if (novo?.uid && this.organizacaoId) {
+          this.carregarFornecedores();
+        }
+      },
+      deep: true
+    }
   },
   methods: {
-    resumoTexto(texto) {
-      return texto && texto.length > 30 ? texto.substring(0, 30) + '...' : texto;
-    },
     async carregarFornecedores() {
-      const querySnapshot = await getDocs(collection(db, "fornecedores"));
-      this.fornecedores = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      if (!this.organizacaoId || !this.user?.uid) return;
+      try {
+        const snapshot = await getDocs(collection(db, 'fornecedores'));
+        const todos = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        this.fornecedores = todos.filter(f =>
+          f.organizacaoId === this.organizacaoId &&
+          (f.criadoPor === this.user.uid || (f.allowedUsers || []).includes(this.user.uid))
+        );
+      } catch (err) {
+        console.error('Erro ao carregar fornecedores:', err);
+      }
     },
-    abrirFormulario() {
-      this.formularioAberto = true;
-      this.fornecedorAtual = {
-        id: '',
-        nome: '',
-        cnpj: '',
-        endereco: '',
-        produtos: '',
-        contato: '',
-        anotacoes: '',
-      };
-    },
-    fecharFormulario() {
-      this.formularioAberto = false;
-    },
+
     async salvarFornecedor() {
-      const fornecedorParaSalvar = {
-        nome: this.fornecedorAtual.nome,
-        cnpj: this.fornecedorAtual.cnpj,
-        endereco: this.fornecedorAtual.endereco,
-        produtos: this.fornecedorAtual.produtos,
-        contato: this.fornecedorAtual.contato,
-        anotacoes: this.fornecedorAtual.anotacoes,
+      if (!this.organizacaoId || !this.user?.uid) {
+        alert("Organização ou usuário não definidos.");
+        return;
+      }
+
+      const data = {
+        ...this.novoFornecedor,
+        organizacaoId: this.organizacaoId,
+        criadoPor: this.user.uid,
+        dataCriacao: new Date()
       };
 
       try {
-        if (this.fornecedorAtual.id) {
-          await updateDoc(doc(db, "fornecedores", this.fornecedorAtual.id), fornecedorParaSalvar);
+        if (this.editandoId) {
+          await updateDoc(doc(db, 'fornecedores', this.editandoId), data);
         } else {
-          await addDoc(collection(db, "fornecedores"), fornecedorParaSalvar);
+          await addDoc(collection(db, 'fornecedores'), data);
         }
-        this.fecharFormulario();
+        this.cancelarEdicao();
         this.carregarFornecedores();
-      } catch (error) {
-        console.error("Erro ao salvar fornecedor:", error);
-        alert("Erro ao salvar fornecedor.");
+      } catch (err) {
+        console.error('Erro ao salvar fornecedor:', err);
       }
     },
-    editarFornecedor(f) {
-      this.fornecedorAtual = { ...f };
-      this.formularioAberto = true;
+
+    editarFornecedor(fornecedor) {
+      this.novoFornecedor = { ...fornecedor };
+      this.editandoId = fornecedor.id;
+      this.abrirFormulario = true;
     },
+
+    cancelarEdicao() {
+      this.editandoId = '';
+      this.abrirFormulario = false;
+      this.novoFornecedor = {
+        Nome: '',
+        CNPJ: '',
+        Endereco: '',
+        Contato: '',
+        ProdutosServicos: '',
+        Anotacoes: ''
+      };
+    },
+
     async excluirFornecedor(id) {
-      await deleteDoc(doc(db, "fornecedores", id));
-      this.carregarFornecedores();
+      if (confirm("Deseja excluir este fornecedor?")) {
+        try {
+          await deleteDoc(doc(db, 'fornecedores', id));
+          this.carregarFornecedores();
+        } catch (err) {
+          console.error('Erro ao excluir fornecedor:', err);
+        }
+      }
     },
+
+    selecionarFornecedor(id) {
+      this.fornecedorSelecionado = id;
+    }
   },
   mounted() {
-    this.carregarFornecedores();
-  },
+    if (this.organizacaoId && this.user?.uid) {
+      this.carregarFornecedores();
+    }
+  }
 };
 </script>
-

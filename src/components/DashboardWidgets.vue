@@ -29,7 +29,7 @@
     </div>
 
     <!-- Alterações Recentes -->
-    <div v-if="exibir.logs" class="widget-card">
+    <div v-if="exibir.alteracoes" class="widget-card">
       <h3>Alterações Recentes</h3>
       <ul>
         <li v-for="(alt, index) in alteracoesRecentes" :key="index">
@@ -49,20 +49,14 @@
     </div>
 
     <!-- Previsão do Tempo -->
-    <div v-if="exibir.graficoCustos" class="widget-card">
+    <div v-if="exibir.tempo" class="widget-card">
       <h3>Previsão do Tempo</h3>
       <p>{{ localizacaoProjeto.cidade }}, {{ localizacaoProjeto.estado }}</p>
       <p>Previsão: {{ previsaoTexto }}</p>
     </div>
 
-    <!-- Gráfico de Custos -->
-    <div v-if="exibir.graficoCustos" class="widget-card">
-      <h3>Gráfico de Custos</h3>
-      <canvas ref="graficoCustos"></canvas>
-    </div>
-
     <!-- Status dos Projetos -->
-    <div v-if="exibir.graficoStatus" class="widget-card">
+    <div v-if="exibir.status" class="widget-card">
       <h3>Status dos Projetos</h3>
       <ul>
         <li v-for="(projeto, index) in projetos" :key="index">
@@ -72,17 +66,17 @@
     </div>
 
     <!-- Progresso das Etapas -->
-    <div v-if="exibir.graficoProgresso" class="widget-card">
+    <div v-if="exibir.progresso" class="widget-card">
       <h3>Progresso das Etapas</h3>
       <ul>
-        <li v-for="(etapa, index) in custosPorEtapa" :key="index">
+        <li v-for="(etapa, index) in etapas" :key="index">
           {{ etapa.etapa }} - {{ etapa.progresso }}%
         </li>
       </ul>
     </div>
 
     <!-- Atividades Recentes -->
-    <div v-if="exibir.graficoLogs" class="widget-card">
+    <div v-if="exibir.atividades" class="widget-card">
       <h3>Atividades Recentes</h3>
       <ul>
         <li v-for="(log, index) in logsRecentes" :key="index">
@@ -94,49 +88,35 @@
 </template>
 
 <script>
-import { onMounted, ref } from 'vue';
-import Chart from 'chart.js/auto';
-
 export default {
   props: {
-    alertas: { type: Array, default: () => [] },
-    contagemProjetos: { type: Object, default: () => ({ total: 0, andamento: 0, finalizados: 0 }) },
-    logsRecentes: { type: Array, default: () => [] },
-    alteracoesRecentes: { type: Array, default: () => [] },
-    custosPorEtapa: { type: Array, default: () => [] },
-    projetoSelecionado: { type: String, default: '' },
-    localizacaoProjeto: { type: Object, default: () => ({ cidade: '', estado: '' }) },
-    projetos: { type: Array, default: () => [] },
-    exibir: { type: Object, default: () => ({ alertas: true, projetos: true, logs: true, custos: true, graficoCustos: true, graficoStatus: true, graficoProgresso: true, graficoLogs: true }) }
-  },
-  setup(props) {
-    const previsaoTexto = ref('Carregando...');
-    const graficoCustos = ref(null);
-
-    onMounted(() => {
-      previsaoTexto.value = 'Ensolarado, 25°C'; // Mock ou API
-
-      if (graficoCustos.value) {
-        const ctx = graficoCustos.value.getContext('2d');
-        new Chart(ctx, {
-          type: 'bar',
-          data: {
-            labels: props.custosPorEtapa.map(c => c.etapa),
-            datasets: [{
-              label: 'Custos (R$)',
-              data: props.custosPorEtapa.map(c => c.valor),
-              backgroundColor: '#007bff'
-            }]
-          },
-          options: {
-            responsive: true,
-            plugins: { legend: { display: false } }
-          }
-        });
-      }
-    });
-
-    return { previsaoTexto, graficoCustos };
+    exibir: Object,
+    alertas: Array,
+    contagemProjetos: Object,
+    logsRecentes: Array,
+    alteracoesRecentes: Array,
+    custosPorEtapa: Array,
+    localizacaoProjeto: Object,
+    previsaoTexto: String,
+    projetos: Array,
+    etapas: Array
   }
 };
 </script>
+
+<style scoped>
+.dashboard-widgets {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1rem;
+  padding: 1rem 0;
+}
+.widget-card {
+  background: #fff;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 1rem;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+  overflow-wrap: anywhere;
+}
+</style>

@@ -1,53 +1,208 @@
 <template>
-  <div class="gantt-container">
-    <div class="gantt-header">
-      <span v-for="(dia, index) in diasEscala" :key="index" class="gantt-dia">{{ dia }}</span>
+  <div class="cronograma-gantt-view">
+    <div class="filtros-barra">
+      <label>Tipo:</label>
+      <select :value="tipoSelecionado" @change="$emit('update:tipoSelecionado', $event.target.value)">
+        <option value="etapas">Etapas</option>
+        <option value="tarefas">Tarefas</option>
+        <option value="execucoes">Execuções</option>
+        <option value="diario">Diário de Obra</option>
+      </select>
+
+      <label>Período:</label>
+      <input type="date" :value="filtroInicio" @change="$emit('update:filtroInicio', $event.target.value)" />
+      <input type="date" :value="filtroFim" @change="$emit('update:filtroFim', $event.target.value)" />
+
+      <label>Zoom:</label>
+      <select :value="zoom" @change="$emit('update:zoom', $event.target.value)">
+        <option value="day">Dia</option>
+        <option value="week">Semana</option>
+        <option value="month">Mês</option>
+        <option value="year">Ano</option>
+      </select>
     </div>
-    <div v-for="(item, index) in dados" :key="index" class="gantt-row">
-      <div class="gantt-label">
-        {{ item.nome }}
-        <input type="date" v-model="item.dataInicio" @change="emitirAtualizacao(item)" />
-        <input type="date" v-model="item.dataFim" @change="emitirAtualizacao(item)" />
+
+    <div ref="ganttContainer" class="gantt-wrapper"></div>
+
+    <transition name="fade">
+      <div v-if="detalhes" class="detalhes-modal">
+        <h3>{{ detalhes.text }}</h3>
+        <p><strong>Início:</strong> {{ formatarData(detalhes.start_date) }}</p>
+        <p><strong>Fim:</strong> {{ formatarData(detalhes.end_date) }}</p>
+        <p v-if="detalhes.ProjetoNome"><strong>Projeto:</strong> {{ detalhes.ProjetoNome }}</p>
+        <p v-if="detalhes.EtapaNome"><strong>Etapa:</strong> {{ detalhes.EtapaNome }}</p>
+        <p v-if="detalhes.tipo"><strong>Tipo:</strong> {{ detalhes.tipo }}</p>
+        <button @click="detalhes = null">Fechar</button>
       </div>
-      <div class="gantt-bar" :style="calcularEstiloBarra(item)"></div>
-    </div>
+    </transition>
   </div>
 </template>
 
 <script>
+import dayjs from "dayjs";
+import gantt from "dhtmlx-gantt";
+import "dhtmlx-gantt/codebase/dhtmlxgantt.css";
+
 export default {
-  props: ['dados'],
-  computed: {
-    diasEscala() {
-      const dias = [];
-      const inicio = new Date(Math.min(...this.dados.map(item => new Date(item.dataInicio).getTime())));
-      const fim = new Date(Math.max(...this.dados.map(item => new Date(item.dataFim).getTime())));
-      for (let d = new Date(inicio); d <= fim; d.setDate(d.getDate() + 1)) {
-        dias.push(new Date(d).toLocaleDateString());
-      }
-      return dias;
-    }
+  name: 'CronogramaGantt',
+  props: {
+    dados: Array,
+    tipoSelecionado: String,
+    filtroInicio: String,
+    filtroFim: String,
+    zoom: String
+  },
+  data() {
+    return {
+      detalhes: null
+    };
   },
   methods: {
-    calcularEstiloBarra(item) {
-      const inicioGlobal = new Date(Math.min(...this.dados.map(i => new Date(i.dataInicio).getTime())));
-      const fimGlobal = new Date(Math.max(...this.dados.map(i => new Date(i.dataFim).getTime())));
-      const totalDias = (fimGlobal - inicioGlobal) / (1000 * 60 * 60 * 24);
-
-      const inicio = new Date(item.dataInicio);
-      const fim = new Date(item.dataFim);
-      const inicioDia = (inicio - inicioGlobal) / (1000 * 60 * 60 * 24);
-      const duracao = (fim - inicio) / (1000 * 60 * 60 * 24);
-
-      return {
-        width: `${(duracao / totalDias) * 100}%`,
-        marginLeft: `${(inicioDia / totalDias) * 100}%`
-      };
+    formatarData(data) {
+      if (!data) return '—';
+      return dayjs(data).format('DD/MM/YYYY');
     },
-    emitirAtualizacao(item) {
-      this.$emit('atualizarDatas', item);
+    mostrarDetalhes(task) {
+      this.detalhes = task;
+    },
+    getCorPorTipo(tipo) {
+      switch (tipo) {
+        case 'etapas': return '#3b82f6';
+        case 'tarefas': return '#f59e0b';
+        case 'execucoes': return '#10b981';
+        case 'diario': return '#6b7280';
+        default: return '#9ca3af';
+      }
+    },
+    configurarZoom() {
+      switch (this.zoom) {
+        case 'day':
+          gantt.config.scale_unit = "day";
+          gantt.config.date_scale = "%d/%m";
+          gantt.config.subscales = [];
+          break;
+        case 'week':
+          gantt.config.scale_unit = "week";
+          gantt.config.date_scale = "Semana %W";
+          gantt.config.subscales = [{ unit: "day", step: 1, date: "%D" }];
+          break;
+        case 'month':
+          gantt.config.scale_unit = "month";
+          gantt.config.date_scale = "%M %Y";
+          gantt.config.subscales = [{ unit: "day", step: 1, date: "%d" }];
+          break;
+        case 'year':
+          gantt.config.scale_unit = "year";
+          gantt.config.date_scale = "%Y";
+          gantt.config.subscales = [{ unit: "month", step: 1, date: "%M" }];
+          break;
+      }
+    },
+    renderizarGantt() {
+      gantt.clearAll();
+      this.configurarZoom();
+      gantt.init(this.$refs.ganttContainer);
+
+      const inicio = this.filtroInicio ? dayjs(this.filtroInicio) : null;
+      const fim = this.filtroFim ? dayjs(this.filtroFim) : null;
+
+      let tarefas = (this.dados || [])
+        .filter(item => item.dataInicio && item.dataFim)
+        .filter(item => {
+          const inicioItem = dayjs(item.dataInicio);
+          const fimItem = dayjs(item.dataFim);
+          return (!inicio || fimItem.isAfter(inicio.subtract(1, 'day')))
+              && (!fim || inicioItem.isBefore(fim.add(1, 'day')));
+        })
+        .map(item => ({
+          id: item.id,
+          text: item.nome || item.NomeEtapa || item.NomeTarefa || 'Item',
+          start_date: dayjs(item.dataInicio).format('YYYY-MM-DD'),
+          end_date: dayjs(item.dataFim).format('YYYY-MM-DD'),
+          ProjetoNome: item.ProjetoNome || '',
+          EtapaNome: item.EtapaNome || '',
+          tipo: this.tipoSelecionado,
+          color: this.getCorPorTipo(this.tipoSelecionado)
+        }));
+
+      gantt.templates.tooltip_text = function (start, end, task) {
+        return `<b>${task.text}</b><br/><b>Início:</b> ${start.toLocaleDateString()}<br/><b>Fim:</b> ${end.toLocaleDateString()}`;
+      };
+
+      gantt.parse({ data: tarefas });
+
+      gantt.attachEvent("onTaskClick", (id) => {
+        const tarefa = tarefas.find(t => t.id === id);
+        this.mostrarDetalhes(tarefa);
+        return true;
+      });
     }
+  },
+  mounted() {
+    this.renderizarGantt();
+  },
+  watch: {
+    dados: { handler() { this.renderizarGantt(); }, deep: true },
+    tipoSelecionado() { this.renderizarGantt(); },
+    filtroInicio() { this.renderizarGantt(); },
+    filtroFim() { this.renderizarGantt(); },
+    zoom() { this.renderizarGantt(); }
   }
 };
 </script>
 
+<style scoped>
+.cronograma-gantt-view {
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+.filtros-barra {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+}
+.filtros-barra label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-right: 0.25rem;
+}
+.filtros-barra select,
+.filtros-barra input[type="date"] {
+  font-size: 0.8rem;
+  padding: 0.2rem 0.3rem;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+  max-width: 140px;
+}
+.gantt-wrapper {
+  width: 100%;
+  height: 60vh;
+  max-height: 600px;
+  border-radius: 6px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  overflow: hidden;
+  background: #fff;
+}
+.detalhes-modal {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  background: white;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 1rem;
+  box-shadow: 0 0 10px rgba(0,0,0,0.1);
+  z-index: 999;
+  max-width: 300px;
+  transition: all 0.3s ease;
+}
+.fade-enter-active, .fade-leave-active {
+  transition: opacity 0.3s;
+}
+.fade-enter-from, .fade-leave-to {
+  opacity: 0;
+}
+</style>

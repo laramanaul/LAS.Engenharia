@@ -8,6 +8,29 @@
       </option>
     </select>
   </div>
+
+    <!-- Seleção de Organização -->
+    <div class="sidebar-projeto">
+      <label style="color: #bbb; font-size: 0.75rem;">Organização</label>
+      <select v-model="organizacaoId" @change="emitirOrganizacao">
+        <option disabled value="">Selecione a Organização</option>
+        <option v-for="org in organizacoes" :key="org.id" :value="org.id">
+          {{ org.Nome }}
+        </option>
+      </select>
+    </div>
+
+    <!-- Seleção de Projeto -->
+    <div class="sidebar-projeto">
+      <label style="color: #bbb; font-size: 0.75rem;">Projeto</label>
+      <select v-model="projetoSelecionado" @change="onTrocarProjeto">
+        <option disabled value="">Selecione o Projeto</option>
+        <option v-for="projeto in projetos" :key="projeto.id" :value="projeto.id">
+          {{ projeto.NomeProjeto }}
+        </option>
+      </select>
+    </div>
+
 </template>
 
 <script>
@@ -16,12 +39,14 @@ import { collection, getDocs, query, where } from 'firebase/firestore';
 
 export default {
   props: ['user', 'projetoAtivo'],
-  emits: ['trocar-projeto'],
+  emits: ['trocar-projeto', 'logout', 'reset-password', 'selecionar-organizacao'],
   data() {
     return {
       projetos: [],
-      projetoSelecionado: '',
-      carregando: false,  // Novo estado para controle de carregamento
+      organizacoes: [],
+      organizacaoSelecionada: '',
+      projetoSelecionado: this.projetoAtivo || '',
+      dropdownAberto: false
     };
   },
   methods: {

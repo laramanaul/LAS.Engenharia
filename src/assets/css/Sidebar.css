@@ -83,7 +83,7 @@
 /* === SEPARADOR DE GRUPO DE MENUS === */
 .menu-separador {
   margin: 0; /* remove margem */
-   padding: 0.3rem 1rem;
+   padding: 0.4rem 1rem;
   font-size: 0.75rem;
   line-height: 1rem;
   text-transform: uppercase;
@@ -95,15 +95,15 @@
 
 /* === SELEÇÃO DE PROJETO === */
 .sidebar-projeto {
-  padding: 0.75rem 1rem;
+  padding: 0.075rem 1rem;
 }
 .sidebar-projeto select {
   width: 100%;
-  padding: 0.5rem;
-  background: #2a2a3d;
-  border: 1px solid #555;
-  color: #fff;
-  border-radius: 6px;
+  padding: 0.15rem;
+  background: #0166AA;
+  border: 1px solid #0166AA;
+  color: #ffff;
+  border-radius: 5px;
 }
 
 /* === ITENS DE MENU === */
@@ -124,7 +124,7 @@
   padding: 0.35rem 0.75rem;
   border: none;
   background: transparent;
-  color: #fff;
+  color: #ffff;
   text-align: left;
   display: flex;
   align-items: center;

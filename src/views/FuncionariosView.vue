@@ -1,177 +1,314 @@
 <template>
-  <div class="funcionarios-container">
-    <div class="header">
-      <div class="actions">
-        <input type="text" v-model="filtro" placeholder="Buscar por nome ou cargo..." />
-        <button @click="abrirFormulario">+ Novo Funcionário</button>
+  <div class="funcionarios-view projetos-view">
+    <h2>Funcionários</h2>
+
+    <!-- Controles superiores -->
+    <div class="topo-controles">
+      <button class="botao-destaque" @click="abrirFormulario = true">➕ Adicionar Funcionário</button>
+      <input type="text" v-model="filtroBusca" placeholder="Buscar por nome ou cargo..." class="campo-busca" />
+    </div>
+
+    <!-- Modal de formulário -->
+    <div v-if="abrirFormulario" class="modal-overlay">
+      <div class="modal">
+        <h3>{{ editandoId ? 'Editar Funcionário' : 'Novo Funcionário' }}</h3>
+
+        <div class="formulario-projeto">
+          <div class="form-coluna" style="flex: 1 1 45%;">
+            <label>Nome</label>
+            <input v-model="novoFuncionario.Nome" placeholder="Nome completo" required />
+          </div>
+
+          <div class="form-coluna" style="flex: 1 1 45%;">
+            <label>CPF</label>
+            <input v-model="novoFuncionario.CPF" placeholder="CPF" />
+          </div>
+
+          <div class="form-coluna" style="flex: 1 1 45%;">
+            <label>Cargo</label>
+            <input v-model="novoFuncionario.Cargo" placeholder="Cargo" />
+          </div>
+
+          <div class="form-coluna" style="flex: 1 1 45%;">
+            <label>Contato</label>
+            <input v-model="novoFuncionario.Contato" placeholder="Telefone, e-mail..." />
+          </div>
+
+          <div class="form-coluna" style="flex: 1 1 45%;">
+            <label>Data de Admissão</label>
+            <input type="date" v-model="novoFuncionario.DataAdmissao" />
+          </div>
+
+          <div class="form-coluna" style="flex: 1 1 45%;">
+            <label>Data de Desligamento</label>
+            <input type="date" v-model="novoFuncionario.DataDesligamento" />
+          </div>
+
+          <div class="form-coluna" style="flex: 1 1 45%;">
+            <label>Salário</label>
+            <input type="number" v-model="novoFuncionario.Salario" placeholder="0.00" />
+          </div>
+
+          <div class="form-coluna" style="flex: 1 1 45%;">
+            <label>Formato de Pagamento</label>
+            <select v-model="novoFuncionario.FormaPagamento">
+              <option disabled value="">Selecione</option>
+              <option>Mensalista</option>
+              <option>Diária</option>
+              <option>Por tarefa</option>
+              <option>Outro</option>
+            </select>
+          </div>
+
+          <div class="form-coluna" style="flex: 1 1 100%;">
+            <label>Anotações</label>
+            <textarea v-model="novoFuncionario.Anotacoes" rows="3" placeholder="Observações adicionais..."></textarea>
+          </div>
+
+          <div class="form-coluna" style="flex: 1 1 100%;">
+            <label>Projetos Vinculados</label>
+            <div class="checkbox-grid">
+              <label
+                v-for="projeto in projetosDisponiveis"
+                :key="projeto.id"
+                class="checkbox-item"
+              >
+                <input
+                  type="checkbox"
+                  :value="projeto.id"
+                  v-model="novoFuncionario.ProjetosVinculados"
+                />
+                {{ projeto.NomeProjeto }}
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-actions">
+          <button class="botao-destaque" @click="salvarFuncionario">
+            {{ editandoId ? 'Atualizar' : 'Adicionar' }} Funcionário
+          </button>
+          <button class="botao" @click="cancelarEdicao">Cancelar</button>
+        </div>
       </div>
     </div>
 
-    <table class="projetos-tabela">
-      <thead>
-        <tr>
-          <th>Nome</th>
-          <th>Telefone</th>
-          <th>Cargo</th>
-          <th>Salário</th>
-          <th>Modalidade</th>
-          <th>Anotações</th>
-          <th>Ações</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="funcionario in funcionariosFiltrados" :key="funcionario.id">
-          <td>{{ funcionario.nome }}</td>
-          <td>{{ funcionario.telefone }}</td>
-          <td>{{ funcionario.cargo }}</td>
-          <td>R$ {{ funcionario.salario.toFixed(2) }}</td>
-          <td>{{ funcionario.modalidade }}</td>
-          <td>{{ resumoTexto(funcionario.anotacoes) }}</td>
-          <td>
-            <button @click="editarFuncionario(funcionario)">Editar</button>
-            <button @click="excluirFuncionario(funcionario.id)">Excluir</button>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-
-    <!-- Modal para adicionar/editar funcionário -->
-    <div v-if="formularioAberto" class="modal-overlay">
-      <div class="modal">
-        <h3>{{ funcionarioAtual.id ? 'Editar Funcionário' : 'Novo Funcionário' }}</h3>
-
-        <label>Nome:</label>
-        <input v-model="funcionarioAtual.nome" />
-
-        <label>Telefone:</label>
-        <input v-model="funcionarioAtual.telefone" />
-
-        <label>Cargo:</label>
-        <input v-model="funcionarioAtual.cargo" />
-
-        <label>Salário (R$):</label>
-        <input type="number" v-model.number="funcionarioAtual.salario" />
-
-        <label>Modalidade de Pagamento:</label>
-        <input v-model="funcionarioAtual.modalidade" />
-
-        <label>Anotações:</label>
-        <textarea v-model="funcionarioAtual.anotacoes" rows="4"></textarea>
-
-        <div class="modal-actions">
-          <button @click="salvarFuncionario">Salvar</button>
-          <button @click="fecharFormulario">Cancelar</button>
-        </div>
+    <!-- Tabela de funcionários -->
+    <div class="tabela-container">
+      <div v-if="!funcionariosFiltrados.length" style="margin: 1rem 0; color: #a00;">
+        ⚠️ Nenhum funcionário encontrado.
       </div>
+
+      <table v-else class="projetos-tabela">
+        <thead>
+          <tr>
+            <th>Nome</th>
+            <th>CPF</th>
+            <th>Cargo</th>
+            <th>Contato</th>
+            <th>Admissão</th>
+            <th>Desligamento</th>
+            <th>Salário</th>
+            <th>Forma</th>
+            <th>Projetos</th>
+            <th>Anotações</th>
+            <th>Ações</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr
+            v-for="funcionario in funcionariosFiltrados"
+            :key="funcionario.id"
+            :class="{ selecionado: funcionarioSelecionado === funcionario.id }"
+          >
+            <td>{{ funcionario.Nome || '—' }}</td>
+            <td>{{ funcionario.CPF || '—' }}</td>
+            <td>{{ funcionario.Cargo || '—' }}</td>
+            <td>{{ funcionario.Contato || '—' }}</td>
+            <td>{{ funcionario.DataAdmissao || '—' }}</td>
+            <td>{{ funcionario.DataDesligamento || '—' }}</td>
+            <td>R$ {{ Number(funcionario.Salario || 0).toFixed(2) }}</td>
+            <td>{{ funcionario.FormaPagamento || '—' }}</td>
+            <td>
+              <ul v-if="funcionario.ProjetosVinculados && funcionario.ProjetosVinculados.length">
+                <li v-for="pid in funcionario.ProjetosVinculados" :key="pid">{{ pid }}</li>
+              </ul>
+              <span v-else>—</span>
+            </td>
+            <td>{{ funcionario.Anotacoes || '—' }}</td>
+            <td>
+              <div class="acoes-wrapper">
+                <button class="botao-editar" @click="editarFuncionario(funcionario)">✏️</button>
+                <button class="botao-excluir" @click="excluirFuncionario(funcionario.id)">🗑️</button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
     </div>
   </div>
 </template>
 
+
 <script>
 import { db } from '../firebase';
-import { collection, addDoc, updateDoc, deleteDoc, doc, getDocs } from 'firebase/firestore';
+import {
+  collection, getDocs, addDoc, updateDoc, deleteDoc, doc
+} from 'firebase/firestore';
 
 export default {
-  props: ['projetoAtivo'],
+  name: 'FuncionariosView',
+  props: {
+    user: Object,
+    organizacaoId: String
+  },
   data() {
     return {
       funcionarios: [],
-      filtro: '',
-      formularioAberto: false,
-      funcionarioAtual: {
-        id: '',
-        nome: '',
-        telefone: '',
-        cargo: '',
-        salario: 0,
-        modalidade: '',
-        anotacoes: '',
-        ProjetoID: '',
-      },
+      funcionarioSelecionado: '',
+      editandoId: '',
+      abrirFormulario: false,
+      filtroBusca: '',
+      projetosDisponiveis: [],
+      novoFuncionario: {
+        Nome: '',
+        CPF: '',
+        Cargo: '',
+        Contato: '',
+        DataAdmissao: '',
+        DataDesligamento: '',
+        Salario: 0,
+        FormaPagamento: '',
+        Anotacoes: '',
+        ProjetosVinculados: []
+      }
     };
   },
   computed: {
     funcionariosFiltrados() {
-      const texto = this.filtro.toLowerCase();
-      return this.funcionarios.filter(func =>
-        (func.nome || '').toLowerCase().includes(texto) ||
-        (func.cargo || '').toLowerCase().includes(texto)
+      const termo = this.filtroBusca?.toLowerCase().trim();
+      if (!termo) return this.funcionarios;
+
+      return this.funcionarios.filter(f =>
+        (f.Nome || '').toLowerCase().includes(termo) ||
+        (f.Cargo || '').toLowerCase().includes(termo)
       );
+    }
+  },
+  watch: {
+    organizacaoId(nova) {
+      if (nova && this.user?.uid) {
+        this.carregarFuncionarios();
+        this.carregarProjetosDisponiveis();
+      }
     },
+    user: {
+      handler(novo) {
+        if (novo?.uid && this.organizacaoId) {
+          this.carregarFuncionarios();
+          this.carregarProjetosDisponiveis();
+        }
+      },
+      deep: true
+    }
   },
   methods: {
-    resumoTexto(texto) {
-      return texto && texto.length > 30 ? texto.substring(0, 30) + '...' : texto;
-    },
     async carregarFuncionarios() {
-      if (!this.projetoAtivo) return;
-      const querySnapshot = await getDocs(collection(db, "funcionarios"));
-      this.funcionarios = querySnapshot.docs
-        .map(doc => ({ id: doc.id, ...doc.data() }))
-        .filter(func => func.ProjetoID === this.projetoAtivo);
+      if (!this.organizacaoId || !this.user?.uid) return;
+      try {
+        const snapshot = await getDocs(collection(db, 'funcionarios'));
+        const todos = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        this.funcionarios = todos.filter(f =>
+          f.organizacaoId === this.organizacaoId &&
+          (f.criadoPor === this.user.uid || (f.allowedUsers || []).includes(this.user.uid))
+        );
+      } catch (err) {
+        console.error('Erro ao carregar funcionários:', err);
+      }
     },
-    abrirFormulario() {
-      this.formularioAberto = true;
-      this.funcionarioAtual = {
-        id: '',
-        nome: '',
-        telefone: '',
-        cargo: '',
-        salario: 0,
-        modalidade: '',
-        anotacoes: '',
-        ProjetoID: this.projetoAtivo,
-      };
+
+    async carregarProjetosDisponiveis() {
+      if (!this.organizacaoId || !this.user?.uid) return;
+      try {
+        const snapshot = await getDocs(collection(db, 'projetos'));
+        const todos = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        this.projetosDisponiveis = todos.filter(p =>
+          p.organizacaoId === this.organizacaoId &&
+          (p.criadoPor === this.user.uid || (p.allowedUsers || []).includes(this.user.uid))
+        );
+        if (!this.editandoId) {
+          this.novoFuncionario.ProjetosVinculados = this.projetosDisponiveis.map(p => p.id);
+        }
+      } catch (err) {
+        console.error('Erro ao carregar projetos disponíveis:', err);
+      }
     },
-    fecharFormulario() {
-      this.formularioAberto = false;
-    },
+
     async salvarFuncionario() {
-      if (!this.projetoAtivo) {
-        alert("Selecione um projeto antes de salvar.");
+      if (!this.organizacaoId || !this.user?.uid) {
+        alert("Organização ou usuário não definidos.");
         return;
       }
 
-      const funcionarioParaSalvar = {
-        nome: this.funcionarioAtual.nome,
-        telefone: this.funcionarioAtual.telefone,
-        cargo: this.funcionarioAtual.cargo,
-        salario: this.funcionarioAtual.salario,
-        modalidade: this.funcionarioAtual.modalidade,
-        anotacoes: this.funcionarioAtual.anotacoes,
-        ProjetoID: this.projetoAtivo,
+      const dados = {
+        ...this.novoFuncionario,
+        organizacaoId: this.organizacaoId,
+        criadoPor: this.user.uid,
+        dataCriacao: new Date()
       };
 
       try {
-        if (this.funcionarioAtual.id) {
-          await updateDoc(doc(db, "funcionarios", this.funcionarioAtual.id), funcionarioParaSalvar);
+        if (this.editandoId) {
+          await updateDoc(doc(db, 'funcionarios', this.editandoId), dados);
         } else {
-          await addDoc(collection(db, "funcionarios"), funcionarioParaSalvar);
+          await addDoc(collection(db, 'funcionarios'), dados);
         }
-        this.fecharFormulario();
+        this.cancelarEdicao();
         this.carregarFuncionarios();
-      } catch (error) {
-        console.error("Erro ao salvar funcionário:", error);
-        alert("Erro ao salvar funcionário.");
+      } catch (err) {
+        console.error('Erro ao salvar funcionário:', err);
       }
     },
+
     editarFuncionario(func) {
-      this.funcionarioAtual = { ...func };
-      this.formularioAberto = true;
+      this.novoFuncionario = { ...func };
+      this.editandoId = func.id;
+      this.abrirFormulario = true;
     },
+
+    cancelarEdicao() {
+      this.editandoId = '';
+      this.abrirFormulario = false;
+      this.novoFuncionario = {
+        Nome: '',
+        CPF: '',
+        Cargo: '',
+        Contato: '',
+        DataAdmissao: '',
+        DataDesligamento: '',
+        Salario: 0,
+        FormaPagamento: '',
+        Anotacoes: '',
+        ProjetosVinculados: []
+      };
+    },
+
     async excluirFuncionario(id) {
-      await deleteDoc(doc(db, "funcionarios", id));
-      this.carregarFuncionarios();
-    },
-  },
-  watch: {
-    projetoAtivo() {
-      this.carregarFuncionarios();
+      if (confirm("Deseja excluir este funcionário?")) {
+        try {
+          await deleteDoc(doc(db, 'funcionarios', id));
+          this.carregarFuncionarios();
+        } catch (err) {
+          console.error('Erro ao excluir funcionário:', err);
+        }
+      }
     }
   },
   mounted() {
-    this.carregarFuncionarios();
-  },
+    if (this.organizacaoId && this.user?.uid) {
+      this.carregarFuncionarios();
+      this.carregarProjetosDisponiveis();
+    }
+  }
 };
 </script>
-

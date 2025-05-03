@@ -1,180 +1,178 @@
 <template>
   <div class="cronograma-view">
-    <h1>Cronograma</h1>
-    <label for="tipoCronograma">Tipo de Cronograma:</label>
-    <select v-model="tipoSelecionado" id="tipoCronograma">
-      <option value="etapas">Etapas da Obra</option>
-      <option value="tarefas">Tarefas</option>
-      <option value="gastos">Gasto por Item</option>
-    </select>
-
-    <label for="modoVisualizacao">Modo de Visualização:</label>
-    <select v-model="modoVisualizacao" id="modoVisualizacao">
-      <option value="gantt">Linha do Tempo</option>
-      <option value="calendario">Calendário</option>
-    </select>
-
-    <div class="botoes-controle">
-      <button @click="abrirModalAdicao">Adicionar {{ tipoSelecionado }}</button>
-      <button @click="salvarAlteracoes">Salvar Alterações</button>
-      <button @click="exportarCronograma">Exportar Cronograma</button>
-    </div>
-
-    <CronogramaGantt v-if="modoVisualizacao === 'gantt'" :dados="dadosCronograma" @atualizarDatas="atualizarDatas" @excluirItem="excluirItem" />
-    <CronogramaCalendario v-if="modoVisualizacao === 'calendario'" :dados="dadosCronograma" @excluirItem="excluirItem" />
-
-    <!-- Modal Customizado -->
-    <div v-if="mostrarModal" class="modal-overlay">
-      <div class="modal-content">
-        <h3>{{ itemEdicao.id ? 'Editar' : 'Adicionar' }} {{ tipoSelecionado }}</h3>
-        <label>Nome:</label>
-        <input v-model="itemEdicao.nome" type="text" />
-        <label>Data de Início:</label>
-        <input v-model="itemEdicao.dataInicio" type="date" />
-        <label>Data de Fim:</label>
-        <input v-model="itemEdicao.dataFim" type="date" />
-        <div class="modal-botoes">
-          <button @click="salvarItem">Salvar</button>
-          <button @click="fecharModal">Cancelar</button>
-        </div>
-      </div>
-    </div>
+    <CronogramaGantt
+      :dados="dados"
+      :tipoSelecionado="tipoSelecionado"
+      :filtroInicio="filtroInicio"
+      :filtroFim="filtroFim"
+      :zoom="zoom"
+      @update:tipoSelecionado="tipoSelecionado = $event"
+      @update:filtroInicio="filtroInicio = $event"
+      @update:filtroFim="filtroFim = $event"
+      @update:zoom="zoom = $event"
+    />
   </div>
 </template>
 
 <script>
-import CronogramaGantt from '@/components/CronogramaGantt.vue';
-import CronogramaCalendario from '@/components/CronogramaCalendario.vue';
-
+import { collection, getDocs, doc, getDoc, query, where } from 'firebase/firestore';
 import { db } from '@/services/firebase';
-import { collection, getDocs, updateDoc, addDoc, deleteDoc, doc } from 'firebase/firestore';
-import html2canvas from 'html2canvas';
-import jsPDF from 'jspdf';
+import CronogramaGantt from '@/components/CronogramaGantt.vue';
+import dayjs from 'dayjs';
 
 export default {
-  components: { CronogramaGantt, CronogramaCalendario },
+  name: 'CronogramaView',
+  components: { CronogramaGantt },
+  props: {
+    user: Object,
+    projetoAtivo: String,
+    organizacaoId: String
+  },
   data() {
     return {
+      dados: [],
       tipoSelecionado: 'etapas',
-      modoVisualizacao: 'gantt',
-      dadosEtapas: [],
-      dadosTarefas: [],
-      dadosGastos: [],
-      mostrarModal: false,
-      itemEdicao: { nome: '', dataInicio: '', dataFim: '', id: null }
+      filtroInicio: '',
+      filtroFim: '',
+      zoom: 'month'
     };
   },
-  computed: {
-    dadosCronograma() {
-      if (this.tipoSelecionado === 'etapas') return this.dadosEtapas;
-      if (this.tipoSelecionado === 'tarefas') return this.dadosTarefas;
-      return this.dadosGastos;
+  watch: {
+    tipoSelecionado: 'carregarDados',
+    filtroInicio: 'carregarDados',
+    filtroFim: 'carregarDados',
+    zoom: 'carregarDados',
+    projetoAtivo(novo) {
+      if (novo) this.preencherPeriodoDoProjeto(novo);
+      this.carregarDados();
+    },
+    organizacaoId(novo) {
+      if (novo) this.carregarDados();
+    }
+  },
+  methods: {
+    async preencherPeriodoDoProjeto(projetoId) {
+      try {
+        const docSnap = await getDoc(doc(db, 'projetos', projetoId));
+        if (docSnap.exists()) {
+          const projeto = docSnap.data();
+          this.filtroInicio = projeto.dataInicio || '';
+          this.filtroFim = projeto.dataFim || '';
+        }
+      } catch (e) {
+        console.warn('Erro ao carregar dados do projeto:', e);
+      }
+    },
+    async carregarDados() {
+      if (!this.organizacaoId || !this.user?.uid || !this.tipoSelecionado) return;
+
+      try {
+        const colRef = collection(db, this.tipoSelecionado);
+        const snapshot = await getDocs(colRef);
+
+        const registros = snapshot.docs
+          .map(doc => ({ id: doc.id, ...doc.data() }))
+          .filter(item => {
+            const permitido = item.organizacaoId === this.organizacaoId &&
+              (item.UsuarioID === this.user.uid || (item.allowedUsers || []).includes(this.user.uid));
+
+            const hasDates = item.dataInicio && item.dataFim;
+            const pertenceProjeto = !this.projetoAtivo || item.ProjetoID === this.projetoAtivo;
+            return permitido && hasDates && pertenceProjeto;
+          });
+
+        const inicioFiltro = this.filtroInicio ? dayjs(this.filtroInicio) : null;
+        const fimFiltro = this.filtroFim ? dayjs(this.filtroFim) : null;
+
+        const dadosFiltrados = registros.filter(item => {
+          const inicioItem = dayjs(item.dataInicio);
+          const fimItem = dayjs(item.dataFim);
+          return (!inicioFiltro || fimItem.isAfter(inicioFiltro.subtract(1, 'day')))
+              && (!fimFiltro || inicioItem.isBefore(fimFiltro.add(1, 'day')));
+        });
+
+        this.dados = dadosFiltrados.map(item => ({
+          ...item,
+          ProjetoNome: item.NomeProjeto || item.ProjetoNome || '',
+          EtapaNome: item.NomeEtapa || item.EtapaNome || ''
+        }));
+      } catch (e) {
+        console.error('Erro ao carregar dados do cronograma:', e);
+      }
     }
   },
   mounted() {
-    this.carregarDadosFirebase();
-  },
-  methods: {
-    async carregarDadosFirebase() {
-      const etapasSnapshot = await getDocs(collection(db, "etapas"));
-      this.dadosEtapas = etapasSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      const tarefasSnapshot = await getDocs(collection(db, "tarefas"));
-      this.dadosTarefas = tarefasSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      const gastosSnapshot = await getDocs(collection(db, "gastos"));
-      this.dadosGastos = gastosSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    },
-    atualizarDatas(itemAtualizado) {
-      const lista = this.dadosCronograma;
-      const index = lista.findIndex(item => item.id === itemAtualizado.id);
-      if (index !== -1) {
-        lista[index].dataInicio = itemAtualizado.dataInicio;
-        lista[index].dataFim = itemAtualizado.dataFim;
-      }
-    },
-    abrirModalAdicao() {
-      this.itemEdicao = { nome: '', dataInicio: '', dataFim: '', id: null };
-      this.mostrarModal = true;
-    },
-    async salvarItem() {
-      if (this.itemEdicao.nome && this.itemEdicao.dataInicio && this.itemEdicao.dataFim) {
-        if (this.itemEdicao.id) {
-          const ref = doc(db, this.tipoSelecionado, this.itemEdicao.id);
-          await updateDoc(ref, {
-            nome: this.itemEdicao.nome,
-            dataInicio: this.itemEdicao.dataInicio,
-            dataFim: this.itemEdicao.dataFim
-          });
-        } else {
-          const ref = await addDoc(collection(db, this.tipoSelecionado), {
-            nome: this.itemEdicao.nome,
-            dataInicio: this.itemEdicao.dataInicio,
-            dataFim: this.itemEdicao.dataFim
-          });
-          this.itemEdicao.id = ref.id;
-          this.dadosCronograma.push({ ...this.itemEdicao });
-        }
-        this.mostrarModal = false;
-        alert('Item salvo com sucesso!');
-      }
-    },
-    fecharModal() {
-      this.mostrarModal = false;
-    },
-    async excluirItem(id) {
-      await deleteDoc(doc(db, this.tipoSelecionado, id));
-      const lista = this.dadosCronograma;
-      const index = lista.findIndex(item => item.id === id);
-      if (index !== -1) lista.splice(index, 1);
-    },
-    async salvarAlteracoes() {
-      const lista = this.dadosCronograma;
-      for (const item of lista) {
-        const ref = doc(db, this.tipoSelecionado, item.id);
-        await updateDoc(ref, {
-          dataInicio: item.dataInicio,
-          dataFim: item.dataFim
-        });
-      }
-      alert('Alterações salvas com sucesso!');
-    },
-    exportarCronograma() {
-      html2canvas(document.querySelector(".cronograma-view"), { scale: 2 }).then(canvas => {
-        const imgData = canvas.toDataURL('image/png');
-        const pdf = new jsPDF('landscape', 'pt', 'a4');
-        const imgProps = pdf.getImageProperties(imgData);
-        const pdfWidth = pdf.internal.pageSize.getWidth();
-        const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
-        pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-        pdf.save("cronograma.pdf");
-      });
-    }
+    if (this.projetoAtivo) this.preencherPeriodoDoProjeto(this.projetoAtivo);
+    this.carregarDados();
   }
 };
 </script>
 
 <style scoped>
-.modal-overlay {
-  position: fixed;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background: rgba(0,0,0,0.5);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
+.cronograma-view {
+  padding: 1rem;
+  background-color: #f9fafb;
+  min-height: 100vh;
 }
-.modal-content {
-  background: white;
-  padding: 1.5rem;
-  border-radius: 8px;
-  width: 300px;
+</style>
+
+
+
+
+
+
+<style scoped>
+.cronograma-gantt-view {
+  padding: 1rem;
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 1rem;
 }
-.modal-botoes {
+.filtros-barra {
   display: flex;
-  justify-content: flex-end;
+  flex-wrap: wrap;
   gap: 0.5rem;
-  margin-top: 1rem;
+  align-items: center;
+}
+.filtros-barra label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-right: 0.25rem;
+}
+.filtros-barra select,
+.filtros-barra input[type="date"] {
+  font-size: 0.8rem;
+  padding: 0.2rem 0.3rem;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+  max-width: 140px;
+}
+.gantt-wrapper {
+  width: 100%;
+  height: 60vh;
+  max-height: 600px;
+  border-radius: 6px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  overflow: hidden;
+  background: #fff;
+}
+.detalhes-modal {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  background: white;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 1rem;
+  box-shadow: 0 0 10px rgba(0,0,0,0.1);
+  z-index: 999;
+  max-width: 300px;
+  transition: all 0.3s ease;
+}
+.fade-enter-active, .fade-leave-active {
+  transition: opacity 0.3s;
+}
+.fade-enter-from, .fade-leave-to {
+  opacity: 0;
 }
 </style>

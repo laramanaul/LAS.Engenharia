@@ -13,6 +13,7 @@ import CronogramaView from '../views/CronogramaView.vue';
 import CronogramaCalendario from '../views/CronogramaView.vue';
 import RelatoriosView from '../views/RelatoriosView.vue';
 import ConfiguracoesView from '../views/ConfiguracoesView.vue';
+import TarefasView from '../views/TarefasView.vue';
 
 const routes = [
   { path: '/', redirect: '/dashboard' },
@@ -27,6 +28,7 @@ const routes = [
   { path: '/cronograma', component: CronogramaView, meta: { requiresAuth: true } },
   { path: '/relatorios', component: RelatoriosView, meta: { requiresAuth: true } },
   { path: '/configuracoes', component: ConfiguracoesView, meta: { requiresAuth: true } },
+  { path: '/tarefas', component: TarefasView, meta: { requiresAuth: true } },
 ];
 
 

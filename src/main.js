@@ -7,7 +7,6 @@ import './assets/css/index.css';  // Importa todos estilos modulados
 
 
 
-
 let app;
 
 auth.onAuthStateChanged(user => {

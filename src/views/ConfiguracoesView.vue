@@ -1,113 +1,158 @@
 <template>
-  <div class="configuracoes-container">
-    <h2>Configurações Globais</h2>
+  <div class="configuracoes-view">
+    <h2>Configurações da Organização</h2>
 
-    <!-- Seção: Categorias de Itens -->
-    <section>
-      <h3>Categorias de Itens</h3>
-      <ul>
-        <li v-for="(cat, index) in configuracoes.categoriasItens" :key="index">
-          {{ cat }}
-          <button @click="removerItem('categoriasItens', index)">Remover</button>
-        </li>
-      </ul>
-      <input v-model="novoValor.categoriasItens" placeholder="Nova Categoria" />
-      <button @click="adicionarItem('categoriasItens')">Adicionar Categoria</button>
-    </section>
+    <!-- Sessão de Organização -->
+    <div class="bloco-config">
+      <h3>🧩 Organização</h3>
+      <div class="formulario-projeto">
+        <label>Nome da Organização</label>
+        <input v-model="organizacao.Nome" placeholder="Nome da Organização" />
 
-    <!-- Seção: Tipos de Itens -->
-    <section>
-      <h3>Tipos de Itens</h3>
-      <ul>
-        <li v-for="(tipo, index) in configuracoes.tiposItens" :key="index">
-          {{ tipo }}
-          <button @click="removerItem('tiposItens', index)">Remover</button>
-        </li>
-      </ul>
-      <input v-model="novoValor.tiposItens" placeholder="Novo Tipo de Item" />
-      <button @click="adicionarItem('tiposItens')">Adicionar Tipo</button>
-    </section>
+        <label>Descrição</label>
+        <textarea v-model="organizacao.Descricao" rows="2" placeholder="Descrição da organização..."></textarea>
+      </div>
+      <button class="botao-destaque" @click="salvarOrganizacao">💾 Salvar Organização</button>
+    </div>
 
-    <!-- Seção: Tipos de Projetos -->
-    <section>
-      <h3>Tipos de Projetos</h3>
+    <!-- Sessão de Usuários -->
+    <div class="bloco-config">
+      <h3>👥 Usuários da Organização</h3>
       <ul>
-        <li v-for="(tipo, index) in configuracoes.tiposProjetos" :key="index">
-          {{ tipo }}
-          <button @click="removerItem('tiposProjetos', index)">Remover</button>
-        </li>
+        <li v-for="user in organizacao.usuarios" :key="user">{{ user }}</li>
       </ul>
-      <input v-model="novoValor.tiposProjetos" placeholder="Novo Tipo de Projeto" />
-      <button @click="adicionarItem('tiposProjetos')">Adicionar Tipo</button>
-    </section>
+      <div class="formulario-projeto">
+        <label>Adicionar Novo Usuário (email)</label>
+        <input v-model="novoUsuario" placeholder="email@exemplo.com" />
+      </div>
+      <button class="botao" @click="adicionarUsuario">➕ Adicionar Usuário</button>
+    </div>
 
-    <!-- Seção: Status de Etapas -->
-    <section>
-      <h3>Status de Etapas</h3>
+    <!-- Sessão Tipos de Etapa -->
+    <div class="bloco-config">
+      <h3>📌 Tipos de Etapa</h3>
+      <div class="formulario-projeto">
+        <label>Nova Etapa</label>
+        <input v-model="novaEtapa" placeholder="Nome da Etapa" />
+      </div>
+      <button class="botao" @click="adicionarTipoEtapa">➕ Adicionar Etapa</button>
       <ul>
-        <li v-for="(status, index) in configuracoes.statusEtapas" :key="index">
-          {{ status }}
-          <button @click="removerItem('statusEtapas', index)">Remover</button>
-        </li>
+        <li v-for="etapa in tiposEtapa" :key="etapa">{{ etapa }}</li>
       </ul>
-      <input v-model="novoValor.statusEtapas" placeholder="Novo Status" />
-      <button @click="adicionarItem('statusEtapas')">Adicionar Status</button>
-    </section>
+    </div>
+
+    <!-- Sessão Tipos de Item -->
+    <div class="bloco-config">
+      <h3>🏷️ Tipos de Item</h3>
+      <div class="formulario-projeto">
+        <label>Novo Tipo de Item</label>
+        <input v-model="novoTipoItem" placeholder="Tipo de Item" />
+      </div>
+      <button class="botao" @click="adicionarTipoItem">➕ Adicionar Tipo</button>
+      <ul>
+        <li v-for="tipo in tiposItem" :key="tipo">{{ tipo }}</li>
+      </ul>
+    </div>
   </div>
 </template>
 
 <script>
 import { db } from '../firebase';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { doc, getDoc, updateDoc, setDoc } from 'firebase/firestore';
 
 export default {
+  props: ['user'],
   data() {
     return {
-      configuracoes: {
-        categoriasItens: [],
-        tiposItens: [],
-        tiposProjetos: [],
-        statusEtapas: [],
+      organizacao: {
+        Nome: '',
+        Descricao: '',
+        usuarios: []
       },
-      novoValor: {
-        categoriasItens: '',
-        tiposItens: '',
-        tiposProjetos: '',
-        statusEtapas: '',
-      },
+      novoUsuario: '',
+      novaEtapa: '',
+      novoTipoItem: '',
+      tiposEtapa: [],
+      tiposItem: []
     };
   },
   methods: {
-    async carregarConfiguracoes() {
-      const docRef = doc(db, "configuracoesGlobais", "padrao");
-      const docSnap = await getDoc(docRef);
-      if (docSnap.exists()) {
-        this.configuracoes = docSnap.data();
-      } else {
-        await setDoc(docRef, this.configuracoes); // inicializa
+    async carregarOrganizacao() {
+      try {
+        const docRef = doc(db, 'organizacoes', this.user.uid);
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+          const dados = docSnap.data();
+          this.organizacao = {
+            Nome: dados.Nome || '',
+            Descricao: dados.Descricao || '',
+            usuarios: dados.usuarios || []
+          };
+          this.tiposEtapa = dados.tiposEtapa || [];
+          this.tiposItem = dados.tiposItem || [];
+        }
+      } catch (error) {
+        console.error('Erro ao carregar organização:', error);
       }
     },
-    async salvarConfiguracoes() {
-      const docRef = doc(db, "configuracoesGlobais", "padrao");
-      await setDoc(docRef, this.configuracoes);
-    },
-    async adicionarItem(tipo) {
-      const valor = this.novoValor[tipo].trim();
-      if (valor && !this.configuracoes[tipo].includes(valor)) {
-        this.configuracoes[tipo].push(valor);
-        this.novoValor[tipo] = '';
-        await this.salvarConfiguracoes();
-      } else {
-        alert("Valor inválido ou já existente.");
+
+
+async salvarOrganizacao() {
+  if (!this.organizacao.Nome || !this.organizacao.Descricao) {
+    alert("Preencha todos os campos da organização.");
+    return;
+  }
+
+  try {
+    const ref = doc(db, 'organizacoes', this.user.uid);
+    await setDoc(ref, {
+      Nome: this.organizacao.Nome,
+      Descricao: this.organizacao.Descricao,
+      usuarios: this.organizacao.usuarios.length
+        ? this.organizacao.usuarios
+        : [this.user.email],
+      tiposEtapa: this.tiposEtapa,
+      tiposItem: this.tiposItem
+    });
+
+    alert("Organização salva com sucesso.");
+  } catch (err) {
+    console.error('Erro ao salvar organização:', err);
+    alert("Erro ao salvar organização.");
+  }
+},
+
+    async adicionarUsuario() {
+      if (this.novoUsuario && !this.organizacao.usuarios.includes(this.novoUsuario)) {
+        this.organizacao.usuarios.push(this.novoUsuario);
+        this.novoUsuario = '';
+        this.salvarOrganizacao();
       }
     },
-    async removerItem(tipo, index) {
-      this.configuracoes[tipo].splice(index, 1);
-      await this.salvarConfiguracoes();
+
+
+
+
+    async adicionarTipoEtapa() {
+      if (this.novaEtapa && !this.tiposEtapa.includes(this.novaEtapa)) {
+        this.tiposEtapa.push(this.novaEtapa);
+        this.novaEtapa = '';
+        this.salvarOrganizacao();
+      }
     },
+
+    async adicionarTipoItem() {
+      if (this.novoTipoItem && !this.tiposItem.includes(this.novoTipoItem)) {
+        this.tiposItem.push(this.novoTipoItem);
+        this.novoTipoItem = '';
+        this.salvarOrganizacao();
+      }
+    }
   },
   mounted() {
-    this.carregarConfiguracoes();
-  },
+    if (this.user?.uid) {
+      this.carregarOrganizacao();
+    }
+  }
 };
 </script>
