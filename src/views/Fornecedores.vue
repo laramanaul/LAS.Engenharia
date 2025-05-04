@@ -16,18 +16,23 @@
 
     <!-- Modal de formulário -->
     <div v-if="abrirFormulario" class="modal-overlay">
-      <div class="modal" style="max-width: 900px;">
+      <div class="modal">
         <h3>{{ editandoId ? 'Editar Fornecedor' : 'Novo Fornecedor' }}</h3>
 
-        <div class="formulario-projeto" style="display: flex; flex-wrap: wrap; gap: 1rem;">
-          <div class="form-coluna" style="flex: 1 1 45%;">
-            <label>Nome</label>
+        <div class="formulario-projeto">
+          <div class="form-coluna"  style="flex: 1 1 45%;">
+            <label>Nome do Fornecedor</label>
             <input v-model="novoFornecedor.Nome" placeholder="Nome do fornecedor" required />
           </div>
 
-          <div class="form-coluna" style="flex: 1 1 45%;">
+          <div class="form-coluna">
             <label>CNPJ</label>
             <input v-model="novoFornecedor.CNPJ" placeholder="CNPJ ou CPF" />
+          </div>
+
+          <div class="form-coluna">
+            <label>Contato</label>
+            <input v-model="novoFornecedor.Contato" placeholder="Telefone, e-mail ou responsável" />
           </div>
 
           <div class="form-coluna" style="flex: 1 1 45%;">
@@ -35,10 +40,6 @@
             <input v-model="novoFornecedor.Endereco" placeholder="Endereço completo" />
           </div>
 
-          <div class="form-coluna" style="flex: 1 1 45%;">
-            <label>Contato</label>
-            <input v-model="novoFornecedor.Contato" placeholder="Telefone, e-mail ou responsável" />
-          </div>
 
           <div class="form-coluna" style="flex: 1 1 100%;">
             <label>Produtos ou Serviços</label>

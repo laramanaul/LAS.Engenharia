@@ -1,214 +1,292 @@
 <template>
-  <div class="tarefas-view projetos-view">
-    <h2>Tarefas</h2>
+  <div class="tarefas-view">
+    <h2>Gestão de Tarefas</h2>
 
     <!-- Controles superiores -->
     <div class="topo-controles">
-      <button class="botao-destaque" @click="abrirFormularioTarefa">➕ Nova Tarefa</button>
+      <button class="botao-destaque" @click="abrirFormulario = true">➕ Nova Tarefa</button>
       <input type="text" v-model="filtroBusca" placeholder="Buscar tarefas..." class="campo-busca" />
+      <select v-model="filtroEtapa">
+        <option value="">Todas as Etapas</option>
+        <option v-for="etapa in etapasDisponiveis" :key="etapa.id" :value="etapa.NomeEtapa">
+          {{ etapa.NomeEtapa }}
+        </option>
+      </select>
+      <select v-model="filtroPrioridade">
+        <option value="">Todas</option>
+        <option value="Alta">Somente Prioridade Alta</option>
+        <option value="Vencida">Somente Vencidas</option>
+        <option value="Normal">Somente Normais</option>
+      </select>
     </div>
 
-    <!-- Modal de cadastro/edição -->
-    <div v-if="formularioAberto" class="modal-overlay">
+     <!-- Modal de formulário -->
+    <div v-if="abrirFormulario" class="modal-overlay">
       <div class="modal">
         <h3>{{ editandoId ? 'Editar Tarefa' : 'Nova Tarefa' }}</h3>
 
         <div class="formulario-projeto">
-          <div class="form-coluna" style="flex: 1 1 45%;">
-            <label>Data de Lançamento</label>
-            <input type="date" v-model="tarefaAtual.DataLancamento" />
-          </div>
-
-          <div class="form-coluna" style="flex: 1 1 45%;">
-            <label>Previsão de Conclusão</label>
-            <input type="date" v-model="tarefaAtual.PrevisaoConclusao" />
-          </div>
-
-          <div class="form-coluna" style="flex: 1 1 100%;">
+          <div class="form-coluna">
             <label>Demanda</label>
-            <input v-model="tarefaAtual.Demanda" />
+            <input v-model="novaTarefa.Titulo" placeholder="Título da tarefa" required />
           </div>
 
-          <div class="form-coluna" style="flex: 1 1 45%;">
-            <label>Responsável</label>
-            <input v-model="tarefaAtual.Responsavel" />
+          <div class="form-linha">
+            <div class="form-coluna">
+              <label>Data Início</label>
+              <input type="date" v-model="novaTarefa.DataInicio" required />
+            </div>
+            <div class="form-coluna">
+              <label>Data Limite</label>
+              <input type="date" v-model="novaTarefa.DataLimite" required />
+            </div>
+            <div class="form-coluna">
+              <label>Prioridade</label>
+              <select v-model="novaTarefa.prioridade">
+                <option value="">Normal</option>
+                <option value="Alta">Alta</option>
+              </select>
+            </div>
           </div>
 
-          <div class="form-coluna" style="flex: 1 1 45%;">
-            <label>Etapa Associada</label>
-            <select v-model="tarefaAtual.EtapaID">
-              <option disabled value="">Selecione a etapa</option>
-              <option v-for="e in etapasDisponiveisFiltradas" :key="e.id" :value="e.id">{{ e.NomeEtapa }}</option>
-            </select>
+          <div class="form-linha">
+            <div class="form-coluna">
+              <label>Etapa Relacionada</label>
+              <select v-model="novaTarefa.Etapa" required>
+                <option disabled value="">Selecione</option>
+                <option v-for="etapa in etapasDisponiveis" :key="etapa.id" :value="etapa.NomeEtapa">
+                  {{ etapa.NomeEtapa }}
+                </option>
+              </select>
+            </div>
+            <div class="form-coluna">
+              <label>Responsável</label>
+              <select v-model="novaTarefa.Responsavel" required>
+                <option disabled value="">Selecione</option>
+                <option v-for="f in funcionariosDisponiveis" :key="f.id" :value="f.Nome">
+                  {{ f.Nome }}
+                </option>
+              </select>
+            </div>
+            <div class="form-coluna">
+              <label>Status</label>
+              <select v-model="novaTarefa.Status" required>
+                <option disabled value="">Selecione</option>
+                <option>Pendente</option>
+                <option>Em Andamento</option>
+                <option>Concluída</option>
+              </select>
+            </div>
           </div>
 
-          <div class="form-coluna" style="flex: 1 1 100%;">
-            <label>Observações</label>
-            <textarea v-model="tarefaAtual.Observacoes" rows="3" />
+          <div class="form-coluna" style="flex: 1 1 100%; max-height: 100px;">
+            <label>Anotações</label>
+            <textarea v-model="novaTarefa.Anotacoes" rows="3" placeholder="Observações adicionais..."></textarea>
           </div>
-        </div>
 
-        <div class="modal-actions">
-          <button class="botao-destaque" @click="salvarTarefa">
-            {{ editandoId ? 'Atualizar' : 'Adicionar' }} Tarefa
-          </button>
-          <button class="botao" @click="cancelarEdicao">Cancelar</button>
+          <div class="modal-actions">
+            <button class="botao-destaque" @click="salvarTarefa">
+              {{ editandoId ? 'Atualizar' : 'Adicionar' }} Tarefa
+            </button>
+            <button class="botao" @click="cancelarEdicao">Cancelar</button>
+          </div>
         </div>
       </div>
     </div>
 
     <!-- Colunas Kanban -->
-    <div class="kanban-board">
+    <div class="kanban-container alinhado-esquerda">
       <div
-        v-for="status in ['Pendente', 'Em Andamento', 'Concluído']"
-        :key="status"
         class="kanban-coluna"
-        @dragover.prevent
-        @drop="soltarTarefa($event, status)"
-        @dragenter="colunaEmFoco = status"
-        @dragleave="colunaEmFoco = ''"
-        :class="{ dragover: colunaEmFoco === status }"
+        v-for="status in ['Pendente', 'Em Andamento', 'Concluída']"
+        :key="status"
       >
-        <h3>{{ status }}</h3>
-        <div
-          v-for="tarefa in tarefasFiltradas(status)"
-          :key="tarefa.id"
-          class="kanban-card"
-          draggable="true"
-          @dragstart="iniciarArrasto(tarefa)"
-        >
-          <div class="kanban-topo">
-            <strong>{{ tarefa.Demanda }}</strong>
-            <span class="data">{{ formatarData(tarefa.PrevisaoConclusao) }}</span>
-          </div>
-          <p><strong>Responsável:</strong> {{ tarefa.Responsavel }}</p>
-          <p><strong>Etapa:</strong>
-            <select v-model="tarefa.EtapaID" @change="atualizarEtapaTarefa(tarefa)">
-              <option disabled value="">Selecione</option>
-              <option v-for="e in etapasDisponiveisFiltradas" :key="e.id" :value="e.id">{{ e.NomeEtapa }}</option>
-            </select>
-          </p>
-          <p><strong>Obs:</strong> {{ tarefa.Observacoes || '—' }}</p>
-
-          <div class="acoes-wrapper">
-            <button class="botao-editar" @click="editarTarefa(tarefa)">✏️</button>
-            <button class="botao-excluir" @click="excluirTarefa(tarefa.id)">🗑️</button>
-          </div>
+        <div class="kanban-header">
+          <h3>{{ status }}</h3>
+          <span class="contador">({{ tarefasFiltradasPorStatus[status].length }})</span>
         </div>
+        <draggable
+          v-model="tarefasPorStatus[status]"
+          group="kanban"
+          item-key="id"
+          class="kanban-list"
+          @end="(evento) => onDropEvento(evento, status)"
+        >
+          <template #item="{ element: tarefa }">
+            <div
+              class="tarefa-card"
+              :class="[
+                tarefa.Status.toLowerCase().replace(/\\s/g, '-'),
+                tarefa.prioridade === 'Alta' ? 'prioridade-alta' : '',
+                new Date(tarefa.DataLimite) < new Date() ? 'vencida' : ''
+              ]"
+            >
+              <h4>
+                <span v-if="tarefa.Status === 'Pendente'">🕒</span>
+                <span v-else-if="tarefa.Status === 'Em Andamento'">🚧</span>
+                <span v-else-if="tarefa.Status === 'Concluída'">✅</span>
+                {{ tarefa.Titulo }}
+              </h4>
+              <p><strong>Responsável:</strong> {{ tarefa.Responsavel }}</p>
+              <p><strong>Início:</strong> {{ formatarData(tarefa.DataInicio) }}</p>
+              <p><strong>Limite:</strong> {{ formatarData(tarefa.DataLimite) }}</p>
+              <p><strong>Anotações:</strong> {{ tarefa.Anotacoes || '—' }}</p>
+              <label :title="'Alterar status da tarefa'">Status:</label>
+              <select v-model="tarefa.Status" @change="atualizarStatus(tarefa)">
+                <option>Pendente</option>
+                <option>Em Andamento</option>
+                <option>Concluída</option>
+              </select>
+              <div class="acoes-wrapper">
+                <button class="botao-editar" @click="editarTarefa(tarefa)">✏️</button>
+                <button class="botao-excluir" @click="excluirTarefa(tarefa.id)">🗑️</button>
+              </div>
+            </div>
+          </template>
+        </draggable>
       </div>
     </div>
   </div>
 </template>
 
 
+
 <script>
 import { db } from '../firebase';
 import {
-  collection, getDocs, addDoc, updateDoc, deleteDoc, doc, Timestamp
+  collection, getDocs, addDoc, updateDoc, deleteDoc, doc
 } from 'firebase/firestore';
+import draggable from 'vuedraggable';
 
 export default {
   name: 'TarefasView',
+  components: { draggable },
   props: {
     user: Object,
     organizacaoId: String,
     projetoAtivo: String
   },
   data() {
-    const hoje = new Date().toISOString().split('T')[0];
+    const hoje = new Date().toISOString().substring(0, 10);
     return {
-      colunaEmFoco: '',
       tarefas: [],
-      etapas: [],
-      tarefaAtual: {
-        DataLancamento: hoje,
-        PrevisaoConclusao: hoje,
-        Demanda: '',
-        Responsavel: '',
-        Observacoes: '',
-        Status: 'Pendente',
-        ProjetoID: this.projetoAtivo,
-        EtapaID: ''
-      },
-      filtroBusca: '',
-      formularioAberto: false,
+      etapasDisponiveis: [],
+      funcionariosDisponiveis: [],
+      abrirFormulario: false,
       editandoId: '',
-      tarefaArrastada: null
+      filtroBusca: '',
+      filtroEtapa: '',
+      filtroPrioridade: '',
+      novaTarefa: {
+        Titulo: '',
+        Responsavel: '',
+        DataInicio: hoje,
+        DataLimite: '',
+        Status: '',
+        Etapa: '',
+        Anotacoes: '',
+        prioridade: ''
+      }
     };
   },
   computed: {
-    etapasDisponiveisFiltradas() {
-      return this.etapas.filter(e =>
-        (e.ProjetosVinculados || []).includes(this.projetoAtivo) &&
-        e.organizacaoId === this.organizacaoId &&
-        (e.criadoPor === this.user.uid || (e.allowedUsers || []).includes(this.user.uid))
-      ).sort((a, b) => a.NomeEtapa.localeCompare(b.NomeEtapa));
+    tarefasFiltradas() {
+      const termo = this.filtroBusca?.toLowerCase().trim();
+      return this.tarefas.filter(t => {
+        const porBusca = termo
+          ? (t.Titulo || '').toLowerCase().includes(termo) ||
+            (t.Anotacoes || '').toLowerCase().includes(termo) ||
+            (t.Responsavel || '').toLowerCase().includes(termo)
+          : true;
+
+        const porEtapa = this.filtroEtapa ? t.Etapa === this.filtroEtapa : true;
+
+        const porPrioridade = this.filtroPrioridade === 'Alta'
+          ? t.prioridade === 'Alta'
+          : this.filtroPrioridade === 'Vencida'
+          ? new Date(t.DataLimite) < new Date()
+          : this.filtroPrioridade === 'Normal'
+          ? !t.prioridade || t.prioridade === ''
+          : true;
+
+        return porBusca && porEtapa && porPrioridade;
+      });
+    },
+    tarefasPorStatus() {
+      return {
+        'Pendente': this.tarefasFiltradas.filter(t => t.Status === 'Pendente'),
+        'Em Andamento': this.tarefasFiltradas.filter(t => t.Status === 'Em Andamento'),
+        'Concluída': this.tarefasFiltradas.filter(t => t.Status === 'Concluída')
+      };
+    },
+    tarefasFiltradasPorStatus() {
+      return this.tarefasPorStatus;
     }
   },
   watch: {
-    projetoAtivo(novo) {
-      if (novo) {
-        this.carregarTarefas();
-        this.carregarEtapas();
-      }
-    },
-    organizacaoId(novo) {
-      if (novo) {
-        this.carregarEtapas();
-      }
+    organizacaoId: 'carregarDados',
+    projetoAtivo: 'carregarDados',
+    user: {
+      handler(novo) {
+        if (novo?.uid && this.organizacaoId && this.projetoAtivo) {
+          this.carregarDados();
+        }
+      },
+      deep: true
     }
   },
   methods: {
-    formatarData(data) {
-      const d = data?.toDate?.() || new Date(data);
-      return d.toLocaleDateString();
+    async carregarDados() {
+      if (!this.organizacaoId || !this.user?.uid || !this.projetoAtivo) return;
+      try {
+        const [tarefasSnap, etapasSnap, funcionariosSnap] = await Promise.all([
+          getDocs(collection(db, 'tarefas')),
+          getDocs(collection(db, 'etapas')),
+          getDocs(collection(db, 'funcionarios'))
+        ]);
+
+        const todasTarefas = tarefasSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        this.tarefas = todasTarefas.filter(t =>
+          t.organizacaoId === this.organizacaoId &&
+          t.projetoId === this.projetoAtivo &&
+          (t.criadoPor === this.user.uid || (t.allowedUsers || []).includes(this.user.uid))
+        );
+
+        const todasEtapas = etapasSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        this.etapasDisponiveis = todasEtapas.filter(e =>
+          e.organizacaoId === this.organizacaoId &&
+          e.ProjetosVinculados?.includes(this.projetoAtivo)
+        );
+
+        this.funcionariosDisponiveis = funcionariosSnap.docs
+          .map(doc => ({ id: doc.id, ...doc.data() }))
+          .filter(f => f.organizacaoId === this.organizacaoId);
+
+      } catch (err) {
+        console.error('Erro ao carregar dados:', err);
+      }
     },
-    async carregarTarefas() {
-      if (!this.projetoAtivo) return;
-      const snapshot = await getDocs(collection(db, 'tarefas'));
-      this.tarefas = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
-        .filter(t => t.ProjetoID === this.projetoAtivo);
-    },
-    async carregarEtapas() {
-      if (!this.organizacaoId || !this.projetoAtivo) return;
-      const snapshot = await getDocs(collection(db, 'etapas'));
-      this.etapas = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    },
-    tarefasFiltradas(status) {
-      const texto = this.filtroBusca.toLowerCase();
-      return this.tarefas
-        .filter(t => t.Status === status)
-        .filter(t =>
-          (t.Demanda || '').toLowerCase().includes(texto) ||
-          (t.Responsavel || '').toLowerCase().includes(texto)
-        )
-        .sort((a, b) => (a.PrevisaoConclusao || '').localeCompare(b.PrevisaoConclusao));
-    },
-    abrirFormularioTarefa() {
-      const hoje = new Date().toISOString().split('T')[0];
-      this.tarefaAtual = {
-        DataLancamento: hoje,
-        PrevisaoConclusao: hoje,
-        Demanda: '',
-        Responsavel: '',
-        Observacoes: '',
-        Status: 'Pendente',
-        ProjetoID: this.projetoAtivo,
-        EtapaID: ''
-      };
-      this.editandoId = '';
-      this.formularioAberto = true;
-    },
-    cancelarEdicao() {
-      this.formularioAberto = false;
-      this.editandoId = '';
-    },
+
     async salvarTarefa() {
+      if (!this.organizacaoId || !this.user?.uid || !this.projetoAtivo) {
+        alert("Organização, projeto ou usuário não definidos.");
+        return;
+      }
+
+      const camposObrigatorios = ['Titulo', 'Responsavel', 'DataInicio', 'DataLimite', 'Status', 'Etapa'];
+      const faltando = camposObrigatorios.filter(c => !this.novaTarefa[c]?.toString().trim());
+
+      if (faltando.length) {
+        alert("Preencha todos os campos obrigatórios antes de continuar.");
+        return;
+      }
+
       const dados = {
-        ...this.tarefaAtual,
-        DataLancamento: Timestamp.fromDate(new Date(this.tarefaAtual.DataLancamento)),
-        PrevisaoConclusao: Timestamp.fromDate(new Date(this.tarefaAtual.PrevisaoConclusao)),
-        ProjetoID: this.projetoAtivo
+        ...this.novaTarefa,
+        organizacaoId: this.organizacaoId,
+        projetoId: this.projetoAtivo,
+        criadoPor: this.user.uid,
+        dataCriacao: new Date()
       };
 
       try {
@@ -218,55 +296,77 @@ export default {
           await addDoc(collection(db, 'tarefas'), dados);
         }
         this.cancelarEdicao();
-        this.carregarTarefas();
+        this.carregarDados();
       } catch (err) {
         console.error('Erro ao salvar tarefa:', err);
       }
     },
+
     editarTarefa(tarefa) {
-      this.tarefaAtual = {
-        ...tarefa,
-        DataLancamento: tarefa.DataLancamento?.toDate?.().toISOString().split('T')[0] || '',
-        PrevisaoConclusao: tarefa.PrevisaoConclusao?.toDate?.().toISOString().split('T')[0] || ''
-      };
+      this.novaTarefa = { ...tarefa };
       this.editandoId = tarefa.id;
-      this.formularioAberto = true;
+      this.abrirFormulario = true;
     },
+
+    cancelarEdicao() {
+      const hoje = new Date().toISOString().substring(0, 10);
+      this.editandoId = '';
+      this.abrirFormulario = false;
+      this.novaTarefa = {
+        Titulo: '',
+        Responsavel: '',
+        DataInicio: hoje,
+        DataLimite: '',
+        Status: '',
+        Etapa: '',
+        Anotacoes: '',
+        prioridade: ''
+      };
+    },
+
     async excluirTarefa(id) {
-      if (confirm('Deseja excluir esta tarefa?')) {
+      if (confirm("Deseja excluir esta tarefa?")) {
         try {
           await deleteDoc(doc(db, 'tarefas', id));
-          this.carregarTarefas();
+          this.carregarDados();
         } catch (err) {
           console.error('Erro ao excluir tarefa:', err);
         }
       }
     },
-    iniciarArrasto(tarefa) {
-      this.tarefaArrastada = tarefa;
-    },
-    async soltarTarefa(event, novoStatus) {
-      if (!this.tarefaArrastada) return;
+
+    async atualizarStatus(tarefa) {
       try {
-        await updateDoc(doc(db, 'tarefas', this.tarefaArrastada.id), { Status: novoStatus });
-        this.carregarTarefas();
-        this.tarefaArrastada = null;
+        const tarefaRef = doc(db, 'tarefas', tarefa.id);
+        await updateDoc(tarefaRef, { Status: tarefa.Status });
       } catch (err) {
-        console.error('Erro ao mover tarefa:', err);
+        console.error('Erro ao atualizar status da tarefa:', err);
       }
     },
-    async atualizarEtapaTarefa(tarefa) {
-      try {
-        await updateDoc(doc(db, 'tarefas', tarefa.id), { EtapaID: tarefa.EtapaID });
-        this.carregarTarefas();
-      } catch (err) {
-        console.error('Erro ao atualizar etapa:', err);
+
+    async onDropEvento(evento, novoStatus) {
+      const tarefa = evento?.item?.context?.element;
+      if (tarefa && tarefa.Status !== novoStatus) {
+        tarefa.Status = novoStatus;
+        try {
+          await updateDoc(doc(db, 'tarefas', tarefa.id), { Status: novoStatus });
+        } catch (err) {
+          console.error('Erro ao atualizar status via drag and drop:', err);
+        }
       }
+    },
+
+    formatarData(data) {
+      if (!data) return '—';
+      const d = new Date(data + 'T00:00:00');
+      return d.toLocaleDateString('pt-BR', { timeZone: 'UTC' });
     }
   },
   mounted() {
-    this.carregarTarefas();
-    this.carregarEtapas();
+    if (this.organizacaoId && this.projetoAtivo && this.user?.uid) {
+      this.carregarDados();
+    }
   }
 };
 </script>
+

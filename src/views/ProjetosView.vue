@@ -14,7 +14,7 @@
         <h3>{{ editandoId ? 'Editar Projeto' : 'Novo Projeto' }}</h3>
 
         <div class="formulario-projeto">
-          <div class="form-coluna" v-for="(campo, label) in camposTexto" :key="label">
+          <div class="form-coluna" v-for="(campo, label) in camposTexto" :key="label" style="flex: 1 1 45%;">
             <label>{{ campo.label }}</label>
             <input v-model="novoProjeto[label]" :placeholder="campo.label" required />
           </div>
@@ -35,15 +35,6 @@
             </select>
           </div>
 
-          <div class="form-coluna">
-            <label>Status</label>
-            <select v-model="novoProjeto.Status" required>
-              <option disabled value="">Selecione o Status</option>
-              <option>Pendente</option>
-              <option>Em andamento</option>
-              <option>Finalizado</option>
-            </select>
-          </div>
 
           <div class="form-coluna" style="flex: 1 1 100%;">
             <label>Tipo de Projeto</label>
@@ -69,12 +60,23 @@
             <input type="date" v-model="novoProjeto.DataFimPrevista" required />
           </div>
 
-          <div class="form-coluna" style="flex: 1 1 100%;">
+
+          <div class="form-coluna">
+            <label>Status do projeto</label>
+            <select v-model="novoProjeto.Status" required>
+              <option disabled value="">Selecione o Status</option>
+              <option>Pendente</option>
+              <option>Em andamento</option>
+              <option>Finalizado</option>
+            </select>
+          </div>
+
+          <div class="form-coluna" style="flex: 1 1 50%;">
             <label>Anotações</label>
             <textarea v-model="novoProjeto.Anotacoes" rows="2" placeholder="Anotações"></textarea>
           </div>
 
-          <div class="form-coluna" style="flex: 1 1 100%;">
+          <div class="form-coluna" style="flex: 1 1 40%;">
             <label>Arquivos</label>
             <ul v-if="novoProjeto.Arquivos && novoProjeto.Arquivos.length">
               <li v-for="(url, index) in novoProjeto.Arquivos" :key="index">

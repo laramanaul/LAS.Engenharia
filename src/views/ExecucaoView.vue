@@ -313,16 +313,32 @@ export default {
         .sort((a, b) => a.NomeProjeto.localeCompare(b.NomeProjeto));
     },
 
-    async carregarItens() {
-      const snapshot = await getDocs(collection(db, 'itens'));
-      const todos = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      this.itens = todos
-        .filter(i =>
-          i.organizacaoId === this.organizacaoId &&
-          (i.criadoPor === this.user.uid || (i.allowedUsers || []).includes(this.user.uid))
-        )
-        .sort((a, b) => a.NomeItem.localeCompare(b.NomeItem));
-    },
+async carregarItens() {
+  if (!this.organizacaoId || !this.user?.uid) return;
+
+  try {
+    // Busca itens personalizados
+    const snapItens = await getDocs(collection(db, 'itens'));
+    const personalizados = snapItens.docs
+      .map(doc => ({ id: doc.id, ...doc.data() }))
+      .filter(i =>
+        i.organizacaoId === this.organizacaoId &&
+        (i.criadoPor === this.user.uid || (i.allowedUsers || []).includes(this.user.uid))
+      );
+
+    // Busca itens padrão globais
+    const snapPadrao = await getDocs(collection(db, 'itensPadrao'));
+    const padrao = snapPadrao.docs.map(doc => ({ id: doc.id, ...doc.data(), ehPadrao: true }));
+
+    // Combina e ordena todos
+    this.itens = [...padrao, ...personalizados].sort((a, b) =>
+      (a.NomeItem || '').localeCompare(b.NomeItem || '')
+    );
+  } catch (err) {
+    console.error('Erro ao carregar itens:', err);
+}
+}
+,
 
     async carregarEtapas() {
       const snapshot = await getDocs(collection(db, 'etapas'));

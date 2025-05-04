@@ -1,10 +1,10 @@
 
 /* === SIDEBAR MODERNO E RESPONSIVO === */
 .sidebar.enhanced {
-  width: 240px;
+  width: 190px;
   height: 100vh;
-  background: linear-gradient(to bottom, #1e1e2f, #2e2e3f);
-  color: #fff;
+  background: linear-gradient(to bottom, #1e1e2d, #3e3e5f);
+  color: #ffff;
   display: flex;
   flex-direction: column;
   position: fixed;
@@ -100,7 +100,7 @@
 .sidebar-projeto select {
   width: 100%;
   padding: 0.15rem;
-  background: #0166AA;
+  background: #191970	;
   border: 1px solid #0166AA;
   color: #ffff;
   border-radius: 5px;

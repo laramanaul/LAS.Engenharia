@@ -20,8 +20,8 @@
           </div>
 
           <div class="form-coluna" style="flex: 1 1 45%;">
-            <label>CPF</label>
-            <input v-model="novoFuncionario.CPF" placeholder="CPF" />
+            <label>email</label>
+            <input v-model="novoFuncionario.CPF" placeholder="email" />
           </div>
 
           <div class="form-coluna" style="flex: 1 1 45%;">
@@ -31,7 +31,7 @@
 
           <div class="form-coluna" style="flex: 1 1 45%;">
             <label>Contato</label>
-            <input v-model="novoFuncionario.Contato" placeholder="Telefone, e-mail..." />
+            <input v-model="novoFuncionario.Contato" placeholder="Telefone" />
           </div>
 
           <div class="form-coluna" style="flex: 1 1 45%;">
@@ -65,7 +65,7 @@
             <textarea v-model="novoFuncionario.Anotacoes" rows="3" placeholder="Observações adicionais..."></textarea>
           </div>
 
-          <div class="form-coluna" style="flex: 1 1 100%;">
+          <div class="form-coluna">
             <label>Projetos Vinculados</label>
             <div class="checkbox-grid">
               <label
@@ -102,6 +102,7 @@
       <table v-else class="projetos-tabela">
         <thead>
           <tr>
+            <th>Ações</th>
             <th>Nome</th>
             <th>CPF</th>
             <th>Cargo</th>
@@ -112,7 +113,7 @@
             <th>Forma</th>
             <th>Projetos</th>
             <th>Anotações</th>
-            <th>Ações</th>
+
           </tr>
         </thead>
         <tbody>
@@ -121,7 +122,12 @@
             :key="funcionario.id"
             :class="{ selecionado: funcionarioSelecionado === funcionario.id }"
           >
-            <td>{{ funcionario.Nome || '—' }}</td>
+            <td>
+              <div class="acoes-wrapper">
+                <button class="botao-editar" @click="editarFuncionario(funcionario)">✏️</button>
+                <button class="botao-excluir" @click="excluirFuncionario(funcionario.id)">🗑️</button>
+              </div>
+            </td>            <td>{{ funcionario.Nome || '—' }}</td>
             <td>{{ funcionario.CPF || '—' }}</td>
             <td>{{ funcionario.Cargo || '—' }}</td>
             <td>{{ funcionario.Contato || '—' }}</td>
@@ -131,17 +137,12 @@
             <td>{{ funcionario.FormaPagamento || '—' }}</td>
             <td>
               <ul v-if="funcionario.ProjetosVinculados && funcionario.ProjetosVinculados.length">
-                <li v-for="pid in funcionario.ProjetosVinculados" :key="pid">{{ pid }}</li>
+                <li v-for="pid in funcionario.ProjetosVinculados" :key="pid">{{ buscarNomeProjeto(pid)}}</li>
               </ul>
               <span v-else>—</span>
             </td>
             <td>{{ funcionario.Anotacoes || '—' }}</td>
-            <td>
-              <div class="acoes-wrapper">
-                <button class="botao-editar" @click="editarFuncionario(funcionario)">✏️</button>
-                <button class="botao-excluir" @click="excluirFuncionario(funcionario.id)">🗑️</button>
-              </div>
-            </td>
+
           </tr>
         </tbody>
       </table>
@@ -226,7 +227,10 @@ export default {
         console.error('Erro ao carregar funcionários:', err);
       }
     },
-
+    buscarNomeProjeto(id) {
+      const projeto = this.projetosDisponiveis.find(p => p.id === id);
+      return projeto ? projeto.NomeProjeto : null;
+    },
     async carregarProjetosDisponiveis() {
       if (!this.organizacaoId || !this.user?.uid) return;
       try {

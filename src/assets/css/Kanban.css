@@ -1,101 +1,143 @@
-/* === KANBAN === */
-.kanban-board {
+
+
+/* === AÇÕES DO FORMULÁRIO === */
+.tarefas-view .modal-actions {
   display: flex;
+  justify-content: space-between;
   gap: 1rem;
-  justify-content: flex-start;
-  align-items: flex-start;
-  overflow-x: auto;
-  padding-bottom: 1rem;
   margin-top: 1rem;
 }
 
-.kanban-coluna {
-  background: #f9f9f9;
-  border: 1px solid #ddd;
-  border-radius: 12px;
-  padding: 1rem;
-  flex: 0 0 300px;
-  max-width: 300px;
-  max-height: 80vh;
-  overflow-y: auto;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-  transition: background 0.3s ease;
+/* === KANBAN === */
+.tarefas-view .kanban-container {
+  display: flex;
+  justify-content: flex-start;
+  gap: 1rem;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  width: 100%;
+  max-width: 100vw;
+  padding-bottom: 1rem;
 }
-
-.kanban-coluna.dragover {
-  background: #eef5ff;
-}
-
-.kanban-coluna h3 {
-  font-size: 1.1rem;
-  font-weight: 600;
-  margin-bottom: 0.75rem;
-  color: #007bff;
-  border-bottom: 2px solid #007bff;
-  padding-bottom: 0.25rem;
-}
-
-.kanban-card {
-  background: white;
+.tarefas-view .kanban-coluna {
+  flex: 0 0 25%;
+  max-width: 25%;
+  min-width: 240px;
+  background: #f4f4f4;
   border-radius: 10px;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-  padding: 0.8rem;
-  margin-bottom: 1rem;
-  cursor: grab;
-  transition: transform 0.2s ease;
+  padding: 0.75rem;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-height: 400px;
 }
-
-.kanban-card:active {
-  cursor: grabbing;
-  transform: scale(1.01);
-}
-
-.kanban-topo {
+.tarefas-view .kanban-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 0.5rem;
-}
-
-.kanban-topo strong {
-  font-size: 0.95rem;
-  color: #333;
-}
-
-.kanban-topo .data {
-  font-size: 0.8rem;
-  color: #777;
-}
-
-.kanban-card p {
-  font-size: 0.85rem;
-  margin: 0.3rem 0;
-}
-
-.kanban-card select {
-  font-size: 0.85rem;
-  padding: 0.3rem;
-  margin-top: 0.2rem;
+  background: #ddd;
+  padding: 0.5rem;
   border-radius: 6px;
-  border: 1px solid #ccc;
-  width: 100%;
-  box-sizing: border-box;
+  font-weight: bold;
 }
 
-.kanban-card .acoes-wrapper {
+/* === CARDS === */
+.tarefas-view .tarefa-card {
+  background: white;
+  padding: 0.75rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s ease;
+  position: relative;
+}
+.tarefas-view .tarefa-card:hover {
+  transform: scale(1.02);
+}
+.tarefas-view .tarefa-card h4 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.tarefas-view .tarefa-card p {
+  font-size: 0.85rem;
+  margin: 0.25rem 0;
+}
+.tarefas-view .tarefa-card select {
+  width: 100%;
+  padding: 0.25rem;
+  margin-top: 0.25rem;
+  font-size: 0.85rem;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+}
+
+/* === CORES POR STATUS === */
+.tarefas-view .tarefa-card.pendente {
+  border-left: 6px solid #f44336;
+  background-color: #fff5f5;
+}
+.tarefas-view .tarefa-card.em-andamento {
+  border-left: 6px solid #ff9800;
+  background-color: #fffaf0;
+}
+.tarefas-view .tarefa-card.concluida {
+  border-left: 6px solid #4caf50;
+  background-color: #f1fdf2;
+}
+
+/* === PRIORIDADE ALTA === */
+.tarefas-view .tarefa-card.prioridade-alta {
+  box-shadow: 0 0 0 2px #ff0000 inset, 0 2px 8px rgba(255, 0, 0, 0.2);
+}
+.tarefas-view .tarefa-card.prioridade-alta::before {
+  content: '⚠️';
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  font-size: 1.1rem;
+}
+
+/* === TAREFAS VENCIDAS === */
+.tarefas-view .tarefa-card.vencida {
+  border-left: 6px dashed #ff9800;
+  background-color: #fff8e1;
+}
+
+/* === AÇÕES DO CARD === */
+.tarefas-view .acoes-wrapper {
   display: flex;
   justify-content: flex-end;
-  gap: 0.4rem;
+  gap: 0.5rem;
   margin-top: 0.5rem;
 }
-
-
-.kanban-coluna {
-  scroll-behavior: smooth;
+.tarefas-view .botao-editar,
+.tarefas-view .botao-excluir {
+  padding: 0.25rem 0.5rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.tarefas-view .botao-editar {
+  background: #ffd700;
+}
+.tarefas-view .botao-excluir {
+  background: #ff4d4d;
+  color: white;
 }
 
-.kanban-coluna.dragover {
-  background-color: #eef6ff;
-  border-color: #007bff;
+/* === RESPONSIVO === */
+@media (max-width: 1024px) {
+  .tarefas-view .kanban-coluna {
+    flex: 0 0 80%;
+    max-width: 80%;
+  }
 }
-
+@media (max-width: 768px) {
+  .tarefas-view .kanban-coluna {
+    flex: 0 0 90%;
+    max-width: 90%;
+  }
+}

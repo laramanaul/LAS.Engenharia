@@ -379,3 +379,75 @@ button {
   border-color: #4caf50;
 }
 
+
+
+/* === LISTA DE CHECKBOXES  PROJETOS VINCULADOS=== */
+.checkbox-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 0.25rem 1rem;
+  max-height: 180px;
+  overflow-y: auto;
+  background: #fafafa;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  padding: 0.5rem;
+}
+
+.checkbox-list li {
+  display: flex;
+  align-items: center;
+}
+
+.checkbox-list input[type='checkbox'] {
+  margin-right: 0.5rem;
+}
+
+
+/* === FORMULÁRIO ETAPAS === */
+.form-linha {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  width: 100%;
+}
+
+.form-linha .form-coluna {
+  flex: 1 1 48%;
+}
+
+/* Correção para select desalinhado (etapas e fase) */
+.form-coluna select {
+  appearance: none;
+  background-color: #fff;
+  background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%204%205'%3E%3Cpath%20fill='%23333'%20d='M2%200L0%202h4L2%200zm0%205L0%203h4l-2%202z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.6rem center;
+  background-size: 0.6rem 0.6rem;
+  padding-right: 2rem;
+}
+
+/* Ajuste visual da lista de checkbox projetos vinculados */
+.checkbox-list {
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 0.5rem 1rem;
+  background: #fafafa;
+  padding: 0.75rem;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.checkbox-list li label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.95rem;
+}
+

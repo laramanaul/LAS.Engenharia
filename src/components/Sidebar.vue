@@ -100,7 +100,7 @@ export default {
 
       ],
       menuRelatorios: [
-                { name: 'Cronograma', route: '/cronograma', icon: '🗓️' },
+          
 { name: 'Relatórios', route: '/relatorios', icon: '📈' }
       ],
       organizacoes: [],
