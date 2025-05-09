@@ -1,4 +1,4 @@
-<<<<<<< HEAD
+
 <template>
   <div class="configuracoes-view">
     <h2>⚙️ Configurações</h2>
