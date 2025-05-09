@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 <template>
   <div class="projetos-view">
     <h2>Meus Projetos</h2>
