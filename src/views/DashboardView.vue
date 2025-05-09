@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 <template>
   <div v-if="user && projetoAtivo && organizacaoId" class="dashboard">
     <h2>📊 Dashboard</h2>
