@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 <template>
   <div class="execucao-view projetos-view">
     <h2>Execuções de Etapas</h2>
