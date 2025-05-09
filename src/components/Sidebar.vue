@@ -1,4 +1,4 @@
-<<<<<<< HEAD
+
 <template>
   <div class="sidebar enhanced">
     <!-- Menu do Usuário -->
