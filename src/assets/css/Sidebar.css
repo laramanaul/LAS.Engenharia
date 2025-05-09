@@ -1,0 +1,180 @@
+
+/* === SIDEBAR MODERNO E RESPONSIVO === */
+.sidebar.enhanced {
+  width: 190px;
+  height: 100vh;
+  background: linear-gradient(to bottom, #1e1e2d, #3e3e5f);
+  color: #ffff;
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  top: 0;
+  left: 0;
+  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.3);
+  font-family: 'Segoe UI', sans-serif;
+  z-index: 10;
+}
+
+/* === USUÁRIO === */
+.sidebar-user {
+  padding: 0.75rem 1rem;
+  text-align: left;
+  cursor: pointer;
+  background: #2a2a3d;
+  color: #00d4ff;
+  font-weight: bold;
+  transition: background 0.3s;
+}
+.sidebar-user:hover {
+  background: #3a3a50;
+}
+.usuario-menu {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1rem;
+}
+
+/* === DROPDOWN DE USUÁRIO === */
+.user-dropdown {
+  background: rgba(30, 30, 47, 0.95);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 0.5rem 1rem;
+  min-width: 180px;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+  border-radius: 8px;
+  margin-top: 0.5rem;
+  position: absolute;
+  z-index: 999;
+}
+.user-dropdown ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+.user-dropdown li {
+  white-space: nowrap;
+  padding: 0.4rem 0.6rem;
+  cursor: pointer;
+  color: #eee;
+  border-radius: 6px;
+  transition: background 0.2s ease;
+}
+.user-dropdown li:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+/* === GRUPOS DE MENU === */
+.menu-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+}
+.menu-list:not(:first-child) {
+  margin-top: 0.5rem; /* Aplica espaço só entre grupos */
+}
+
+/* === SEPARADOR DE GRUPO DE MENUS === */
+.menu-separador {
+  margin: 0; /* remove margem */
+   padding: 0.4rem 1rem;
+  font-size: 0.75rem;
+  line-height: 1rem;
+  text-transform: uppercase;
+  color: #ccc;
+  font-weight: bold;
+  background: rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* === SELEÇÃO DE PROJETO === */
+.sidebar-projeto {
+  padding: 0.075rem 1rem;
+}
+.sidebar-projeto select {
+  width: 100%;
+  padding: 0.15rem;
+  background: #191970	;
+  border: 1px solid #0166AA;
+  color: #ffff;
+  border-radius: 5px;
+}
+
+/* === ITENS DE MENU === */
+.menu-list li {
+  transition: background 0.3s ease;
+  margin: 0;
+}
+.menu-list li.active {
+  background: rgba(0, 212, 255, 0.4);
+  border-left: 4px solid #00d4ff;
+  font-weight: bold;
+}
+.menu-list li:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+.menu-list button {
+  width: 100%;
+  padding: 0.35rem 0.75rem;
+  border: none;
+  background: transparent;
+  color: #ffff;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+.menu-list button:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.emoji {
+  margin-right: 8px;
+  animation: float 3s ease-in-out infinite;
+}
+
+/* === RODAPÉ === */
+.sidebar-footer {
+  padding: 1rem;
+  text-align: center;
+  font-size: 0.8rem;
+  background: rgba(0, 0, 0, 0.1);
+}
+
+/* === RESPONSIVIDADE === */
+@media (max-width: 768px) {
+  .sidebar.enhanced {
+    width: 200px;
+    font-size: 0.9rem;
+  }
+  .sidebar-user,
+  .sidebar-projeto,
+  .menu-list button {
+    padding: 0.3rem 0.5rem;
+    font-size: 0.85rem;
+  }
+  .menu-separador {
+    padding-left: 0.5rem;
+  }
+  .emoji {
+    margin-right: 4px;
+  }
+}
+
+/* === ANIMAÇÕES === */
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}

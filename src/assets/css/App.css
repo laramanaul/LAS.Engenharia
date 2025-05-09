@@ -1,0 +1,22 @@
+/* App.css */
+
+.modo-logado {
+  background-color: #f5f5f5;
+  color: #333;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+.modo-login {
+  background-color: #e0e0e0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+.loading {
+  font-size: 1.5rem;
+  text-align: center;
+  padding: 2rem;
+}
