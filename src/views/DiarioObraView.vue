@@ -1,4 +1,4 @@
-<<<<<<< HEAD
+
 <template>
   <div class="diario-view projetos-view">
     <h2>Diário de Obra</h2>
