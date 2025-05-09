@@ -1,0 +1,10 @@
+/* index.css */
+@import './global.css';
+@import './App.css';
+@import './Sidebar.css';
+@import './LoginScreen.css';
+@import './DashboardView.css';
+@import './AppLayout.css';
+@import './Kanban.css';
+@import './ConfiguracoesView.css';
+
