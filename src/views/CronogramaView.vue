@@ -1,4 +1,4 @@
-<<<<<<< HEAD
+
 <template>
   <div class="cronograma-view">
     <CronogramaGantt
