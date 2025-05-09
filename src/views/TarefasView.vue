@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 <template>
   <div class="tarefas-view">
     <h2>Gestão de Tarefas</h2>
