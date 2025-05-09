@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 <!-- src/views/EtapasView.vue -->
 <template>
   <div class="etapas-view">
