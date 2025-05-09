@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 <template>
   <div class="itens-view">
     <h2>Itens Cadastrados</h2>
