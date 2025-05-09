@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 <template>
   <div class="fornecedores-view projetos-view">
     <h2>Fornecedores</h2>
