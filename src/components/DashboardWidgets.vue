@@ -1,4 +1,4 @@
-<<<<<<< HEAD
+
 <template>
   <div class="dashboard-widgets">
     <!-- Widget: Resumo Geral -->
