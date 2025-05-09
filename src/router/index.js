@@ -13,7 +13,7 @@ import DiarioObraView from '../views/DiarioObraView.vue';
 import RelatoriosView from '../views/RelatoriosView.vue';
 import ConfiguracoesView from '../views/ConfiguracoesView.vue';
 import TarefasView from '../views/TarefasView.vue';
-import TiposItemView from '../views/Fornecedores.vue'; // nome do import está confuso
+import TiposItemView from '../views/TiposItemView.vue'; // nome do import está confuso
 
 
 
@@ -32,7 +32,7 @@ const routes = [
   { path: '/relatorios', component: RelatoriosView, meta: { requiresAuth: true } },
   { path: '/configuracoes', component: ConfiguracoesView, meta: { requiresAuth: true } },
   { path: '/tarefas', component: TarefasView, meta: { requiresAuth: true } },
-{ path: '/fornecedores', component: FornecedoresView, meta: { requiresAuth: true } },
+{ path: '/fornecedores', component: TiposItemViewView, meta: { requiresAuth: true } },
 
 ];
 
