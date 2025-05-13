@@ -352,7 +352,17 @@ export default {
       this.formularioAberto = false;
     },
     async salvarExecucao() {
-      if (!this.organizacaoId || !this.user?.uid) return;
+      console.log("Salvar execução: ", {
+        organizacaoId: this.organizacaoId,
+        user: this.user?.uid,
+        execucaoAtual: this.execucaoAtual
+      });
+
+      if (!this.organizacaoId || !this.user?.uid) {
+        console.error('Dados ausentes para salvar execução');
+        return;
+      }
+
       const dados = {
         ...this.execucaoAtual,
         DataExecucao: Timestamp.fromDate(new Date(this.execucaoAtual.DataExecucao)),
@@ -408,6 +418,11 @@ export default {
       if (novo?.uid && this.organizacaoId) {
         this.carregarTodosDados();
       }
+    }
+  },
+  mounted() {
+    if (this.organizacaoId && this.user?.uid) {
+      this.carregarTodosDados();
     }
   }
 };
